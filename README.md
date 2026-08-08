@@ -67,3 +67,26 @@ cd ..
 
 - `.env`, `application.properties` 파일은 절대 GitHub에 커밋하지 마세요. `.gitignore`에 이미 등록되어 있습니다.
 - 두 파일에 필요한 값은 팀원 간 직접 공유해주세요. (Slack, 노션 등 비공개 채널 이용 권장)
+
+CNWasshu-BE/
+┣ src/main/java/com/example/cnwasshu/
+┃  ┣ 📂 common/                 # 공통 유틸, 예외 처리, 보안(Security), Interceptor 등
+┃  ┣ 📂 domain/                 # 도메인별 패키지 분리
+┃  ┃  ┣ 📂 user/                # 보민 담당: 로그인(마이페이지)
+┃  ┃  ┃  ┣ controller/
+┃  ┃  ┃  ┣ service/
+┃  ┃  ┃  ┣ repository/
+┃  ┃  ┃  ┗ entity/
+┃  ┃  ┣ 📂 stamp/               # 보민 담당: 스탬프
+┃  ┃  ┣ 📂 notification/        # 보민 담당: 알림함
+┃  ┃  ┣ 📂 course/              # 현진 담당: 코스 API·AI 연동
+┃  ┃  ┣ 📂 reservation/         # 유진 담당: 예약하기
+┃  ┃  ┣ 📂 home/                # 유진 담당: 홈 화면 데이터
+┃  ┃  ┣ 📂 timetable/           # 예빈 담당: 타임테이블 (여행테이블)
+┃  ┃  ┗ 📂 review/              # 예빈 담당: 만족도조사 및 리뷰
+┃    ┣ 📜 CnwasshuApplication.java
+┗ src/main/resources/
+┣ 📜 application.yml
+┗ 📜 application-local.yml
+
+각자 하위폴더에 controller, service, repository, entity 만들면 됩니다.
