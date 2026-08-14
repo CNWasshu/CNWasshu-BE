@@ -68,6 +68,9 @@ cd ..
 - `.env`, `application.properties` 파일은 절대 GitHub에 커밋하지 마세요. `.gitignore`에 이미 등록되어 있습니다.
 - 두 파일에 필요한 값은 팀원 간 직접 공유해주세요. (Slack, 노션 등 비공개 채널 이용 권장)
 
+## 프로젝트 구조
+
+```text
 CNWasshu-BE/
 ┣ src/main/java/com/example/cnwasshu/
 ┃  ┣ 📂 common/                 # 공통 유틸, 예외 처리, 보안(Security), Interceptor 등
@@ -88,5 +91,6 @@ CNWasshu-BE/
 ┗ src/main/resources/
 ┣ 📜 application.yml
 ┗ 📜 application-local.yml
+```
 
 각자 하위폴더에 controller, service, repository, entity 만들면 됩니다.
