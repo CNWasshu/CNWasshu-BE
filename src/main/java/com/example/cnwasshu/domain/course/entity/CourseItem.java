@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -52,6 +53,15 @@ public class CourseItem {
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
 
+    @Column(length = 500)
+    private String address;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
+
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -62,7 +72,8 @@ public class CourseItem {
 
     @Builder
     public CourseItem(Long activityId, Long reservationId, String title, Integer dayNo,
-                      LocalTime startTime, LocalTime endTime, String memo, Integer sortOrder) {
+                      LocalTime startTime, LocalTime endTime, String memo, Integer sortOrder,
+                      String address, BigDecimal latitude, BigDecimal longitude) {
         this.activityId = activityId;
         this.reservationId = reservationId;
         this.title = title;
@@ -71,6 +82,9 @@ public class CourseItem {
         this.endTime = endTime;
         this.memo = memo;
         this.sortOrder = sortOrder;
+        this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     void assignCourse(Course course) {

@@ -14,12 +14,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CourseService {
+
+    private static final BigDecimal MIN_LATITUDE = new BigDecimal("-90");
+    private static final BigDecimal MAX_LATITUDE = new BigDecimal("90");
+    private static final BigDecimal MIN_LONGITUDE = new BigDecimal("-180");
+    private static final BigDecimal MAX_LONGITUDE = new BigDecimal("180");
 
     private final CourseRepository courseRepository;
 
@@ -46,6 +52,7 @@ public class CourseService {
     }
 
     private CourseDetailResponse saveCourse(Long userId, CourseSaveRequest request, CourseType type) {
+        validateCoordinates(request.items());
         validateNoOverlap(request.items());
 
         Course course = Course.builder()
@@ -106,6 +113,25 @@ public class CourseService {
                 .endTime(request.endTime())
                 .memo(request.memo())
                 .sortOrder(request.sortOrder())
+                .address(request.address())
+                .latitude(request.latitude())
+                .longitude(request.longitude())
                 .build();
+    }
+
+    private void validateCoordinates(List<CourseItemRequest> items) {
+        for (CourseItemRequest item : items) {
+            boolean hasLatitude = item.latitude() != null;
+            boolean hasLongitude = item.longitude() != null;
+            if (hasLatitude != hasLongitude) {
+                throw new IllegalArgumentException("latitude와 longitude는 둘 다 있거나 둘 다 없어야 합니다.");
+            }
+            if (hasLatitude && (item.latitude().compareTo(MIN_LATITUDE) < 0
+                    || item.latitude().compareTo(MAX_LATITUDE) > 0
+                    || item.longitude().compareTo(MIN_LONGITUDE) < 0
+                    || item.longitude().compareTo(MAX_LONGITUDE) > 0)) {
+                throw new IllegalArgumentException("위도 또는 경도의 범위가 올바르지 않습니다.");
+            }
+        }
     }
 }
