@@ -8,13 +8,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
@@ -22,7 +25,11 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class GeminiCourseClient {
+
+    private static final String CLIENT_ERROR_MESSAGE = "Gemini API 호출에 실패했습니다.";
+    private static final int MAX_ERROR_BODY_LOG_LENGTH = 4_000;
 
     private final RestClient.Builder restClientBuilder;
     private final ObjectMapper objectMapper;
@@ -30,35 +37,84 @@ public class GeminiCourseClient {
     @Value("${gemini.api-key:}")
     private String apiKey;
 
-    @Value("${gemini.model:gemini-2.5-flash}")
+    @Value("${gemini.model:gemini-3.6-flash}")
     private String model;
 
     @Value("${gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
     private String baseUrl;
 
     public AiCourseRecommendResponse recommend(AiCourseRequest request) {
-        if (!StringUtils.hasText(apiKey)) {
-            throw new GeminiRecommendationException("GEMINI_API_KEY가 설정되지 않았습니다.");
+        boolean apiKeyConfigured = StringUtils.hasText(apiKey);
+        log.info("Gemini API key configured: {}", apiKeyConfigured);
+        log.info("Gemini request endpoint: {}/models/{}:generateContent", baseUrl, model);
+
+        if (!apiKeyConfigured) {
+            log.error("Gemini request aborted: API key is not configured");
+            throw new GeminiRecommendationException(CLIENT_ERROR_MESSAGE);
         }
 
+        String responseBody;
         try {
-            JsonNode response = restClientBuilder.baseUrl(baseUrl).build()
+            responseBody = restClientBuilder.baseUrl(baseUrl).build()
                     .post()
                     .uri("/models/{model}:generateContent", model)
                     .header("x-goog-api-key", apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(buildRequest(request))
                     .retrieve()
-                    .body(JsonNode.class);
-
-            String json = extractText(response);
-            GeminiCourseResult result = objectMapper.readValue(json, GeminiCourseResult.class);
-            return toResponse(result, request);
+                    .body(String.class);
+            log.info("Gemini response status: 200");
+        } catch (RestClientResponseException e) {
+            log.error("Gemini HTTP error response - status: {}, exception: {}, message: {}",
+                    e.getStatusCode().value(), e.getClass().getName(), e.getMessage());
+            log.error("Gemini error response: {}", safeErrorBody(e.getResponseBodyAsString()));
+            throw new GeminiRecommendationException(CLIENT_ERROR_MESSAGE, e);
         } catch (RestClientException e) {
-            throw new GeminiRecommendationException("Gemini API 호출에 실패했습니다.", e);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
-            throw new GeminiRecommendationException("Gemini 추천 결과를 해석할 수 없습니다.", e);
+            log.error("Gemini HTTP request failed - exception: {}, message: {}",
+                    e.getClass().getName(), e.getMessage(), e);
+            throw new GeminiRecommendationException(CLIENT_ERROR_MESSAGE, e);
         }
+
+        JsonNode response;
+        try {
+            response = objectMapper.readTree(responseBody);
+        } catch (JsonProcessingException e) {
+            log.error("Gemini HTTP 200 response JSON parsing failed - exception: {}, message: {}",
+                    e.getClass().getName(), e.getMessage(), e);
+            throw new GeminiRecommendationException(CLIENT_ERROR_MESSAGE, e);
+        }
+
+        String generatedCourseJson;
+        try {
+            generatedCourseJson = extractText(response);
+        } catch (IllegalArgumentException e) {
+            log.error("Gemini HTTP 200 response does not contain generated text - exception: {}, message: {}, response: {}",
+                    e.getClass().getName(), e.getMessage(), safeErrorBody(responseBody));
+            throw new GeminiRecommendationException(CLIENT_ERROR_MESSAGE, e);
+        }
+
+        try {
+            GeminiCourseResult result = objectMapper.readValue(generatedCourseJson, GeminiCourseResult.class);
+            return toResponse(result, request);
+        } catch (JsonProcessingException e) {
+            log.error("Gemini generated course JSON parsing failed - exception: {}, message: {}",
+                    e.getClass().getName(), e.getMessage(), e);
+            throw new GeminiRecommendationException(CLIENT_ERROR_MESSAGE, e);
+        } catch (IllegalArgumentException e) {
+            log.error("Gemini generated course validation failed - exception: {}, message: {}",
+                    e.getClass().getName(), e.getMessage(), e);
+            throw new GeminiRecommendationException(CLIENT_ERROR_MESSAGE, e);
+        }
+    }
+
+    private String safeErrorBody(String body) {
+        if (!StringUtils.hasText(body)) {
+            return "<empty>";
+        }
+        String redacted = body.replace(apiKey, "[REDACTED]");
+        return redacted.length() <= MAX_ERROR_BODY_LOG_LENGTH
+                ? redacted
+                : redacted.substring(0, MAX_ERROR_BODY_LOG_LENGTH) + "...(truncated)";
     }
 
     private Map<String, Object> buildRequest(AiCourseRequest request) {
@@ -80,6 +136,10 @@ public class GeminiCourseClient {
                 여러 날짜인 경우 모든 날짜를 dayNo별로 구분하고 하루 안에서는 시작 시간이 빠른 순서로 반환하세요.
                 startTime과 endTime은 HH:mm 형식으로 작성하세요.
                 memo에는 추천 이유와 다음 장소까지의 간단한 이동 안내를 포함하세요.
+                실제로 존재하는 충청남도 장소만 추천하고 가상의 장소나 주소를 만들지 마세요.
+                사용자가 선택한 희망 지역 안의 장소를 우선 추천하세요.
+                각 장소의 실제 도로명 주소와 위도(latitude), 경도(longitude)를 반환하세요.
+                latitude와 longitude는 문자열이 아닌 JSON number로 반환하세요.
                 확인할 수 없는 영업시간이나 세부 정보는 단정하지 마세요.
                 """.formatted(
                 request.startDate(), request.endDate(), request.region(),
@@ -101,12 +161,17 @@ public class GeminiCourseClient {
                 "dayNo", Map.of("type", "integer", "minimum", 1),
                 "startTime", Map.of("type", "string", "description", "HH:mm 형식"),
                 "endTime", Map.of("type", "string", "description", "HH:mm 형식"),
+                "address", Map.of("type", "string", "description", "실제 도로명 주소"),
+                "latitude", Map.of("type", "number", "minimum", -90, "maximum", 90),
+                "longitude", Map.of("type", "number", "minimum", -180, "maximum", 180),
                 "memo", Map.of("type", "string", "description", "추천 이유와 이동 안내")
         );
         Map<String, Object> item = Map.of(
                 "type", "object",
                 "properties", itemProperties,
-                "required", List.of("title", "dayNo", "startTime", "endTime", "memo")
+                "required", List.of(
+                        "title", "dayNo", "startTime", "endTime",
+                        "address", "latitude", "longitude", "memo")
         );
         return Map.of(
                 "type", "object",
@@ -151,7 +216,16 @@ public class GeminiCourseClient {
             if (startTime.isBefore(LocalTime.of(9, 0)) || endTime.isAfter(LocalTime.of(22, 0))) {
                 throw new IllegalArgumentException("추천 일정은 09:00~22:00 사이여야 합니다.");
             }
-            return new ValidatedGeminiItem(item.title(), item.dayNo(), startTime, endTime, item.memo());
+            BigDecimal latitude = coordinateOrNull(item.latitude(), new BigDecimal("-90"), new BigDecimal("90"));
+            BigDecimal longitude = coordinateOrNull(
+                    item.longitude(), new BigDecimal("-180"), new BigDecimal("180"));
+            if (latitude == null || longitude == null) {
+                latitude = null;
+                longitude = null;
+            }
+            return new ValidatedGeminiItem(
+                    item.title(), item.dayNo(), startTime, endTime,
+                    item.address(), latitude, longitude, item.memo());
         }).sorted(Comparator.comparing(ValidatedGeminiItem::dayNo)
                 .thenComparing(ValidatedGeminiItem::startTime)
                 .thenComparing(ValidatedGeminiItem::endTime))
@@ -170,8 +244,6 @@ public class GeminiCourseClient {
         }
 
         Map<Integer, Integer> sortOrders = new java.util.HashMap<>();
-        // TODO(activity 연동): 실제 Activity 후보와 activityId를 Gemini에 전달하고,
-        // Gemini가 선택한 activityId로 address/latitude/longitude를 조회하여 채운다.
         List<CourseItemResponse> items = validatedItems.stream()
                 .map(item -> new CourseItemResponse(
                         null,
@@ -182,9 +254,9 @@ public class GeminiCourseClient {
                         item.startTime(),
                         item.endTime(),
                         sortOrders.merge(item.dayNo(), 1, Integer::sum),
-                        null,
-                        null,
-                        null,
+                        item.address(),
+                        item.latitude(),
+                        item.longitude(),
                         item.memo()
                 ))
                 .toList();
@@ -197,6 +269,16 @@ public class GeminiCourseClient {
             case PUBLIC_TRANSIT -> "대중교통";
             case WALKING -> "도보";
         };
+    }
+
+    private BigDecimal coordinateOrNull(JsonNode value, BigDecimal minimum, BigDecimal maximum) {
+        if (value == null || !value.isNumber()) {
+            return null;
+        }
+        BigDecimal coordinate = value.decimalValue();
+        return coordinate.compareTo(minimum) >= 0 && coordinate.compareTo(maximum) <= 0
+                ? coordinate
+                : null;
     }
 
     private String travelStyleLabel(AiCourseRequest request) {
@@ -215,6 +297,9 @@ public class GeminiCourseClient {
             Integer dayNo,
             String startTime,
             String endTime,
+            String address,
+            JsonNode latitude,
+            JsonNode longitude,
             String memo
     ) {}
 
@@ -223,6 +308,9 @@ public class GeminiCourseClient {
             Integer dayNo,
             LocalTime startTime,
             LocalTime endTime,
+            String address,
+            BigDecimal latitude,
+            BigDecimal longitude,
             String memo
     ) {}
 }

@@ -74,7 +74,8 @@ export GEMINI_API_KEY=발급받은_API_키
 ```
 
 필요하면 `GEMINI_MODEL` 환경변수로 모델을 변경할 수 있으며 기본값은
-`gemini-2.5-flash`입니다.
+`gemini-3.6-flash`입니다.
+
 
 ## 주의사항
 

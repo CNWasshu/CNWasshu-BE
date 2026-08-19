@@ -1,8 +1,12 @@
 package com.example.cnwasshu.domain.course.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 /**
@@ -18,6 +22,9 @@ public record CourseItemRequest(
         @NotNull Integer dayNo,
         @NotNull LocalTime startTime,
         @NotNull LocalTime endTime,
-        String memo,
-        @NotNull Integer sortOrder
+        @NotNull Integer sortOrder,
+        @Size(max = 500) String address,
+        @DecimalMin("-90.0") @DecimalMax("90.0") BigDecimal latitude,
+        @DecimalMin("-180.0") @DecimalMax("180.0") BigDecimal longitude,
+        String memo
 ) {}
