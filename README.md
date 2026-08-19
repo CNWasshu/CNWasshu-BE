@@ -63,6 +63,19 @@ cd ..
 
 서버는 `http://localhost:8080` 에서 실행됩니다.
 
+### Gemini API 설정
+
+AI 코스 추천을 사용하려면 서버 실행 전에 Google AI Studio에서 발급받은 키를
+환경변수로 설정합니다. 키는 설정 파일이나 Git에 커밋하지 않습니다.
+
+```bash
+export GEMINI_API_KEY=발급받은_API_키
+./gradlew bootRun
+```
+
+필요하면 `GEMINI_MODEL` 환경변수로 모델을 변경할 수 있으며 기본값은
+`gemini-2.5-flash`입니다.
+
 ## 주의사항
 
 - `.env`, `application.properties` 파일은 절대 GitHub에 커밋하지 마세요. `.gitignore`에 이미 등록되어 있습니다.
