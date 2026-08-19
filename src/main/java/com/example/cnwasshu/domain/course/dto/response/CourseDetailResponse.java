@@ -26,7 +26,10 @@ public record CourseDetailResponse(
                 course.getWithChild(),
                 course.getStartDate(),
                 course.getEndDate(),
-                course.getItems().stream().map(CourseItemResponse::from).toList()
+                course.getItems().stream()
+                        .map(CourseItemResponse::from)
+                        .sorted(CourseItemResponse.COURSE_ORDER)
+                        .toList()
         );
     }
 }

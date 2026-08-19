@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -70,15 +71,19 @@ public class GeminiCourseClient {
                 - 이동 방식: %s
                 - 여행 스타일: %s
 
-                날짜별로 동선을 가깝게 구성하고 식사와 이동 시간을 고려하세요.
+                날짜별로 지역 내 가까운 장소끼리 묶어 불필요한 이동을 줄이세요.
+                이동 방식에 현실적으로 맞는 이동 시간과 식사 시간을 일정 사이에 확보하세요.
+                점심(12:00~14:00)과 저녁(18:00~20:00) 시간대에는 식사 일정을 포함하거나 식사 시간을 비워두세요.
+                여행 스타일이 아이와 함께라면 연령대가 특정되지 않았으므로 가족 친화적이고 무리 없는 장소를 선택하세요.
                 각 일정은 09:00~22:00 안에 배치하고 같은 날 일정 시간이 겹치면 안 됩니다.
                 dayNo는 첫날이 1이며 여행 일수 범위를 넘지 않아야 합니다.
+                여러 날짜인 경우 모든 날짜를 dayNo별로 구분하고 하루 안에서는 시작 시간이 빠른 순서로 반환하세요.
                 startTime과 endTime은 HH:mm 형식으로 작성하세요.
                 memo에는 추천 이유와 다음 장소까지의 간단한 이동 안내를 포함하세요.
                 확인할 수 없는 영업시간이나 세부 정보는 단정하지 마세요.
                 """.formatted(
                 request.startDate(), request.endDate(), request.region(),
-                request.peopleCount(), request.transportation(), request.travelStyle());
+                request.peopleCount(), transportationLabel(request), travelStyleLabel(request));
 
         return Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
@@ -131,27 +136,31 @@ public class GeminiCourseClient {
         }
 
         long totalDays = request.startDate().datesUntil(request.endDate().plusDays(1)).count();
-        Map<Integer, Integer> sortOrders = new java.util.HashMap<>();
-        List<CourseItemResponse> items = result.items().stream().map(item -> {
+        List<ValidatedGeminiItem> validatedItems = result.items().stream().map(item -> {
             if (item.dayNo() == null || item.dayNo() < 1 || item.dayNo() > totalDays) {
                 throw new IllegalArgumentException("여행 기간을 벗어난 추천 일정입니다.");
+            }
+            if (!StringUtils.hasText(item.title())) {
+                throw new IllegalArgumentException("추천 일정의 장소명이 비어 있습니다.");
             }
             LocalTime startTime = LocalTime.parse(item.startTime());
             LocalTime endTime = LocalTime.parse(item.endTime());
             if (!startTime.isBefore(endTime)) {
                 throw new IllegalArgumentException("추천 일정의 종료 시간이 시작 시간보다 빠릅니다.");
             }
-            int sortOrder = sortOrders.merge(item.dayNo(), 1, Integer::sum);
-            return new CourseItemResponse(
-                    null, null, null, item.title(), item.dayNo(), startTime, endTime,
-                    item.memo(), sortOrder
-            );
-        }).toList();
+            if (startTime.isBefore(LocalTime.of(9, 0)) || endTime.isAfter(LocalTime.of(22, 0))) {
+                throw new IllegalArgumentException("추천 일정은 09:00~22:00 사이여야 합니다.");
+            }
+            return new ValidatedGeminiItem(item.title(), item.dayNo(), startTime, endTime, item.memo());
+        }).sorted(Comparator.comparing(ValidatedGeminiItem::dayNo)
+                .thenComparing(ValidatedGeminiItem::startTime)
+                .thenComparing(ValidatedGeminiItem::endTime))
+                .toList();
 
-        for (int i = 0; i < items.size(); i++) {
-            for (int j = i + 1; j < items.size(); j++) {
-                CourseItemResponse a = items.get(i);
-                CourseItemResponse b = items.get(j);
+        for (int i = 0; i < validatedItems.size(); i++) {
+            for (int j = i + 1; j < validatedItems.size(); j++) {
+                ValidatedGeminiItem a = validatedItems.get(i);
+                ValidatedGeminiItem b = validatedItems.get(j);
                 if (a.dayNo().equals(b.dayNo())
                         && a.startTime().isBefore(b.endTime())
                         && b.startTime().isBefore(a.endTime())) {
@@ -159,7 +168,44 @@ public class GeminiCourseClient {
                 }
             }
         }
+
+        Map<Integer, Integer> sortOrders = new java.util.HashMap<>();
+        // TODO(activity 연동): 실제 Activity 후보와 activityId를 Gemini에 전달하고,
+        // Gemini가 선택한 activityId로 address/latitude/longitude를 조회하여 채운다.
+        List<CourseItemResponse> items = validatedItems.stream()
+                .map(item -> new CourseItemResponse(
+                        null,
+                        null,
+                        null,
+                        item.title(),
+                        item.dayNo(),
+                        item.startTime(),
+                        item.endTime(),
+                        sortOrders.merge(item.dayNo(), 1, Integer::sum),
+                        null,
+                        null,
+                        null,
+                        item.memo()
+                ))
+                .toList();
         return new AiCourseRecommendResponse(result.suggestedCourseName(), items);
+    }
+
+    private String transportationLabel(AiCourseRequest request) {
+        return switch (request.transportation()) {
+            case CAR -> "자가용";
+            case PUBLIC_TRANSIT -> "대중교통";
+            case WALKING -> "도보";
+        };
+    }
+
+    private String travelStyleLabel(AiCourseRequest request) {
+        return switch (request.travelStyle()) {
+            case HEALING -> "힐링";
+            case WITH_CHILD -> "아이와 함께";
+            case FOOD -> "먹거리 중심";
+            case PHOTO_SPOT -> "사진 명소";
+        };
     }
 
     private record GeminiCourseResult(String suggestedCourseName, List<GeminiCourseItem> items) {}
@@ -169,6 +215,14 @@ public class GeminiCourseClient {
             Integer dayNo,
             String startTime,
             String endTime,
+            String memo
+    ) {}
+
+    private record ValidatedGeminiItem(
+            String title,
+            Integer dayNo,
+            LocalTime startTime,
+            LocalTime endTime,
             String memo
     ) {}
 }

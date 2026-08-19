@@ -48,7 +48,7 @@ public class Course {
 
     // 코스 안의 일정들. 코스가 삭제되면 일정도 함께 삭제(orphanRemoval)
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("dayNo ASC, sortOrder ASC")
+    @OrderBy("dayNo ASC, sortOrder ASC, startTime ASC")
     private List<CourseItem> items = new ArrayList<>();
 
     @CreationTimestamp
