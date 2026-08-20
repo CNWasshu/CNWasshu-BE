@@ -8,6 +8,7 @@ import com.example.cnwasshu.domain.timetable.dto.request.TimetableSaveRequest;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableScheduleRequest;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableDetailResponse;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableListResponse;
+import com.example.cnwasshu.domain.timetable.exception.TimetableNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,10 @@ public class TimetableService {
                 .toList();
 
         return TimetableListResponse.from(timetables);
+    }
+
+    public TimetableDetailResponse getTimetable(Long userId, Long timetableId) {
+        return TimetableDetailResponse.from(findOwnedTimetable(userId, timetableId));
     }
 
     @Transactional
@@ -65,6 +70,12 @@ public class TimetableService {
                 .memo(normalizeNullableText(schedule.memo()))
                 .sortOrder(schedule.sortOrder())
                 .build();
+    }
+
+    private Course findOwnedTimetable(Long userId, Long timetableId) {
+        return courseRepository.findByIdAndUserIdAndDeletedAtIsNull(timetableId, userId)
+                .filter(course -> course.getCourseType() == CourseType.USER)
+                .orElseThrow(() -> new TimetableNotFoundException(timetableId));
     }
 
     private String normalizeNullableText(String value) {
