@@ -7,9 +7,12 @@ import com.example.cnwasshu.domain.course.repository.CourseRepository;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableSaveRequest;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableScheduleRequest;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableDetailResponse;
+import com.example.cnwasshu.domain.timetable.dto.response.TimetableListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,16 @@ public class TimetableService {
 
     private final CourseRepository courseRepository;
     private final TimetableValidator timetableValidator;
+
+    public TimetableListResponse getMyTimetables(Long userId) {
+        List<Course> timetables = courseRepository
+                .findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId)
+                .stream()
+                .filter(course -> course.getCourseType() == CourseType.USER)
+                .toList();
+
+        return TimetableListResponse.from(timetables);
+    }
 
     @Transactional
     public TimetableDetailResponse createTimetable(Long userId, TimetableSaveRequest request) {
