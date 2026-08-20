@@ -4,6 +4,7 @@ import com.example.cnwasshu.common.security.CustomUserPrincipal;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableSaveRequest;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableDetailResponse;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableListResponse;
+import com.example.cnwasshu.domain.timetable.dto.response.SavedActivityListResponse;
 import com.example.cnwasshu.domain.timetable.service.TimetableService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class TimetableController {
 
     private final TimetableService timetableService;
+
+    @GetMapping("/saved-activities")
+    public ResponseEntity<SavedActivityListResponse> getSavedActivities(
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        return ResponseEntity.ok(timetableService.getSavedActivities(principal.userId()));
+    }
 
     @GetMapping
     public ResponseEntity<TimetableListResponse> getMyTimetables(

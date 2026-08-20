@@ -8,6 +8,7 @@ import com.example.cnwasshu.domain.timetable.dto.request.TimetableSaveRequest;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableScheduleRequest;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableDetailResponse;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableListResponse;
+import com.example.cnwasshu.domain.timetable.dto.response.SavedActivityListResponse;
 import com.example.cnwasshu.domain.timetable.exception.TimetableNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,11 @@ public class TimetableService {
 
     private final CourseRepository courseRepository;
     private final TimetableValidator timetableValidator;
+    private final SavedActivityQueryPort savedActivityQueryPort;
+
+    public SavedActivityListResponse getSavedActivities(Long userId) {
+        return SavedActivityListResponse.from(savedActivityQueryPort.findSavedActivities(userId));
+    }
 
     public TimetableListResponse getMyTimetables(Long userId) {
         List<Course> timetables = courseRepository
