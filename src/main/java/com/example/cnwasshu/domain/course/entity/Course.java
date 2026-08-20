@@ -78,6 +78,20 @@ public class Course {
         this.courseName = newName;
     }
 
+    public void updateTimetable(
+            String courseName,
+            Integer peopleCount,
+            Boolean withChild,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        this.courseName = courseName;
+        this.peopleCount = peopleCount;
+        this.withChild = withChild;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }

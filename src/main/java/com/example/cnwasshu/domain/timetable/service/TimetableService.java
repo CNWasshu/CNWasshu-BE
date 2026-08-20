@@ -51,12 +51,39 @@ public class TimetableService {
                 .endDate(request.endDate())
                 .build();
 
-        request.days().forEach(day -> day.schedules().forEach(schedule ->
-                course.addItem(toCourseItem(day.dayNo(), schedule))
-        ));
+        toCourseItems(request).forEach(course::addItem);
 
-        Course savedCourse = courseRepository.save(course);
+        Course savedCourse = courseRepository.saveAndFlush(course);
         return TimetableDetailResponse.from(savedCourse);
+    }
+
+    @Transactional
+    public TimetableDetailResponse updateTimetable(
+            Long userId,
+            Long timetableId,
+            TimetableSaveRequest request
+    ) {
+        timetableValidator.validate(request);
+        Course course = findOwnedTimetable(userId, timetableId);
+
+        course.updateTimetable(
+                request.timetableName().trim(),
+                request.peopleCount(),
+                request.withChild(),
+                request.startDate(),
+                request.endDate()
+        );
+        course.replaceItems(toCourseItems(request));
+
+        Course updatedCourse = courseRepository.saveAndFlush(course);
+        return TimetableDetailResponse.from(updatedCourse);
+    }
+
+    private List<CourseItem> toCourseItems(TimetableSaveRequest request) {
+        return request.days().stream()
+                .flatMap(day -> day.schedules().stream()
+                        .map(schedule -> toCourseItem(day.dayNo(), schedule)))
+                .toList();
     }
 
     private CourseItem toCourseItem(Integer dayNo, TimetableScheduleRequest schedule) {
