@@ -23,6 +23,7 @@ public enum ErrorCode {
     TIMETABLE_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "저장할 일정을 한 개 이상 추가해 주세요."),
     INVALID_SCHEDULE_TIME(HttpStatus.BAD_REQUEST, "일정 시간이 올바르지 않습니다."),
     INVALID_SCHEDULE_TYPE(HttpStatus.BAD_REQUEST, "일정 종류와 참조 정보가 올바르지 않습니다."),
+    TIMETABLE_ACTIVITY_NOT_FOUND(HttpStatus.NOT_FOUND, "체험을 찾을 수 없습니다."),
     ACTIVITY_OUTSIDE_OPERATING_HOURS(HttpStatus.BAD_REQUEST, "체험 운영 시간 안에서 일정을 선택해 주세요."),
     ACTIVITY_RESERVATION_REQUIRED(HttpStatus.BAD_REQUEST, "예약 완료 후 추가할 수 있는 체험입니다."),
     INVALID_ACTIVITY_RESERVATION(HttpStatus.BAD_REQUEST, "체험과 예약 정보가 일치하지 않습니다."),

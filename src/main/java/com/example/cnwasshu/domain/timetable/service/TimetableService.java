@@ -45,7 +45,7 @@ public class TimetableService {
 
     @Transactional
     public TimetableDetailResponse createTimetable(Long userId, TimetableSaveRequest request) {
-        timetableValidator.validate(request);
+        timetableValidator.validate(userId, request);
 
         Course course = Course.builder()
                 .userId(userId)
@@ -69,7 +69,7 @@ public class TimetableService {
             Long timetableId,
             TimetableSaveRequest request
     ) {
-        timetableValidator.validate(request);
+        timetableValidator.validate(userId, request);
         Course course = findOwnedTimetable(userId, timetableId);
 
         course.updateTimetable(
