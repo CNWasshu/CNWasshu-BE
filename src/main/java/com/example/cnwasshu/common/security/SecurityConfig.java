@@ -29,7 +29,9 @@ public class SecurityConfig {
             "/api/auth/kakao",
             "/api/auth/refresh",
             // TODO: course 도메인이 JWT 인증으로 전환되면 제거. 현재 X-USER-ID 헤더로 임시 인증 중 (CourseController 참고)
-            "/api/courses/**"
+            "/api/courses/**",
+            "/api/home/**"
+
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
