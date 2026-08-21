@@ -11,8 +11,6 @@ import static java.time.temporal.ChronoUnit.DAYS;
 public record TimetableDetailResponse(
         Long timetableId,
         String timetableName,
-        Integer peopleCount,
-        Boolean withChild,
         LocalDate startDate,
         LocalDate endDate,
         List<TimetableDayResponse> days
@@ -31,8 +29,6 @@ public record TimetableDetailResponse(
         return new TimetableDetailResponse(
                 course.getId(),
                 course.getCourseName(),
-                course.getPeopleCount(),
-                course.getWithChild(),
                 course.getStartDate(),
                 course.getEndDate(),
                 days

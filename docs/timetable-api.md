@@ -10,6 +10,7 @@
 - 타임테이블에서 직접 저장한 코스는 `CourseType.USER`로 저장한다.
 - API의 `timetableId`는 DB의 `course_id`와 같다.
 - 작성 중인 타임테이블은 프론트엔드 로컬 상태로 관리하고, 저장 버튼을 누를 때 전체 데이터를 서버로 전송한다.
+- 여행 인원 수와 아이 동반 여부는 타임테이블 화면에서 다루지 않으므로 요청·응답에 포함하지 않는다. `Course`의 공통 NOT NULL 제약을 위해 서버가 USER 타임테이블 생성 시 내부 호환값을 저장하며, 이 값은 타임테이블의 업무 데이터로 사용하지 않는다.
 
 ### 일정 데이터 구분
 
@@ -57,8 +58,6 @@ POST /api/timetables
 ```json
 {
   "timetableName": "충남 2박 3일 여행",
-  "peopleCount": 2,
-  "withChild": false,
   "startDate": "2026-08-20",
   "endDate": "2026-08-22",
   "days": [
@@ -106,8 +105,6 @@ POST /api/timetables
 {
   "timetableId": 31,
   "timetableName": "충남 2박 3일 여행",
-  "peopleCount": 2,
-  "withChild": false,
   "startDate": "2026-08-20",
   "endDate": "2026-08-22",
   "days": [
