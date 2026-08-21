@@ -21,6 +21,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class TimetableService {
 
+    // Course의 공통 NOT NULL 제약을 유지하기 위한 USER 타임테이블 내부 호환값이다.
+    // 타임테이블 API의 여행 조건으로 사용하거나 외부 계약에 노출하지 않는다.
+    private static final int DEFAULT_PEOPLE_COUNT = 1;
+    private static final boolean DEFAULT_WITH_CHILD = false;
+
     private final CourseRepository courseRepository;
     private final TimetableValidator timetableValidator;
     private final SavedActivityQueryPort savedActivityQueryPort;
@@ -51,8 +56,8 @@ public class TimetableService {
                 .userId(userId)
                 .courseName(request.timetableName().trim())
                 .courseType(CourseType.USER)
-                .peopleCount(request.peopleCount())
-                .withChild(request.withChild())
+                .peopleCount(DEFAULT_PEOPLE_COUNT)
+                .withChild(DEFAULT_WITH_CHILD)
                 .startDate(request.startDate())
                 .endDate(request.endDate())
                 .build();
@@ -74,8 +79,8 @@ public class TimetableService {
 
         course.updateTimetable(
                 request.timetableName().trim(),
-                request.peopleCount(),
-                request.withChild(),
+                course.getPeopleCount(),
+                course.getWithChild(),
                 request.startDate(),
                 request.endDate()
         );

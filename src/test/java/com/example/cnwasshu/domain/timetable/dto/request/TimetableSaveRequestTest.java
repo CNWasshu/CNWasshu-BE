@@ -44,8 +44,6 @@ class TimetableSaveRequestTest {
     void rejectsBlankNameAndEmptyDays() {
         TimetableSaveRequest request = new TimetableSaveRequest(
                 " ",
-                2,
-                false,
                 LocalDate.of(2026, 8, 20),
                 LocalDate.of(2026, 8, 22),
                 List.of()
@@ -73,8 +71,6 @@ class TimetableSaveRequestTest {
         );
         TimetableSaveRequest request = new TimetableSaveRequest(
                 "충남 여행",
-                2,
-                false,
                 LocalDate.of(2026, 8, 20),
                 LocalDate.of(2026, 8, 20),
                 List.of(new TimetableDayRequest(
@@ -117,8 +113,6 @@ class TimetableSaveRequestTest {
         );
         return new TimetableSaveRequest(
                 "충남 여행",
-                2,
-                false,
                 LocalDate.of(2026, 8, 20),
                 LocalDate.of(2026, 8, 20),
                 List.of(day)
