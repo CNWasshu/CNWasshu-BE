@@ -27,7 +27,9 @@ public enum ErrorCode {
     ACTIVITY_OUTSIDE_OPERATING_HOURS(HttpStatus.BAD_REQUEST, "체험 운영 시간 안에서 일정을 선택해 주세요."),
     ACTIVITY_RESERVATION_REQUIRED(HttpStatus.BAD_REQUEST, "예약 완료 후 추가할 수 있는 체험입니다."),
     INVALID_ACTIVITY_RESERVATION(HttpStatus.BAD_REQUEST, "체험과 예약 정보가 일치하지 않습니다."),
-    SCHEDULE_TIME_CONFLICT(HttpStatus.CONFLICT, "같은 날짜에 시간이 겹치는 일정이 있습니다.");
+    SCHEDULE_TIME_CONFLICT(HttpStatus.CONFLICT, "같은 날짜에 시간이 겹치는 일정이 있습니다."),
+
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;
