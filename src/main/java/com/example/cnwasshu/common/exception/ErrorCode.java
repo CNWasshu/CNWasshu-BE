@@ -17,7 +17,6 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임은 공백일 수 없습니다."),
 
-    TIMETABLE_NOT_FOUND(HttpStatus.NOT_FOUND, "타임테이블을 찾을 수 없습니다."),
     INVALID_TIMETABLE_PERIOD(HttpStatus.BAD_REQUEST, "여행 기간이 올바르지 않습니다."),
     INVALID_TIMETABLE_DAY(HttpStatus.BAD_REQUEST, "타임테이블 날짜 구성이 올바르지 않습니다."),
     TIMETABLE_SCHEDULE_REQUIRED(HttpStatus.BAD_REQUEST, "저장할 일정을 한 개 이상 추가해 주세요."),
