@@ -36,13 +36,9 @@ public class BookmarkController {
     public ResponseEntity<List<BookmarkResponse>> getBookmarks(
             @AuthenticationPrincipal CustomUserPrincipal principal
     ) {
-        List<BookmarkResponse> response = bookmarkService
-                .getBookmarks(principal.userId())
-                .stream()
-                .map(BookmarkResponse::from)
-                .toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                bookmarkService.getBookmarks(principal.userId())
+        );
     }
 
     @DeleteMapping
