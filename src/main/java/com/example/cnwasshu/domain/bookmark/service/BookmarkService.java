@@ -1,5 +1,6 @@
 package com.example.cnwasshu.domain.bookmark.service;
 
+import com.example.cnwasshu.domain.bookmark.dto.BookmarkResponse;
 import com.example.cnwasshu.domain.bookmark.entity.Bookmark;
 import com.example.cnwasshu.domain.bookmark.entity.BookmarkType;
 import com.example.cnwasshu.domain.bookmark.repository.BookmarkRepository;
@@ -81,14 +82,17 @@ public class BookmarkService {
         bookmarkRepository.save(bookmark);
     }
 
-    public List<Bookmark> getBookmarks(Long userId) {
+    public List<BookmarkResponse> getBookmarks(Long userId) {
 
         if (!userRepository.existsById(userId)) {
             throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
         }
 
         return bookmarkRepository
-                .findAllByUser_IdOrderByCreatedAtDesc(userId);
+                .findAllByUser_IdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(BookmarkResponse::from)
+                .toList();
     }
 
     @Transactional
