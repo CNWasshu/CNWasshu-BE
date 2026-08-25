@@ -53,6 +53,13 @@ public class ReservationService {
 
         validateActivityForReservation(activity);
         validateReservationDate(activity, request.reservationDate());
+
+        validateDuplicateReservation(
+                userId,
+                activity.getId(),
+                request.reservationDate()
+        );
+
         validatePeopleCount(activity, request.peopleCount());
 
         validateReservationTime(
@@ -125,10 +132,6 @@ public class ReservationService {
             LocalTime slotEndTime =
                     slotTime.plusMinutes(duration);
 
-            /*
-             * 체험 종료시간이 운영 종료시간을 넘어가면
-             * 해당 슬롯부터 더 이상 생성하지 않는다.
-             */
             if (slotEndTime.isAfter(operatingEndTime)) {
                 break;
             }
@@ -154,6 +157,57 @@ public class ReservationService {
         }
 
         return result;
+    }
+
+    public List<ReservationResponse> getReservations(
+            Long userId
+    ) {
+        return reservationRepository
+                .findByUserIdAndStatusAndDeletedAtIsNullOrderByReservationDateDescReservationTimeDesc(
+                        userId,
+                        ReservationStatus.CONFIRMED
+                )
+                .stream()
+                .map(ReservationResponse::from)
+                .toList();
+    }
+
+    public List<ReservationResponse> getReservationsByDate(
+            Long userId,
+            LocalDate date
+    ) {
+        return reservationRepository
+                .findByUserIdAndReservationDateAndStatusAndDeletedAtIsNullOrderByReservationTimeAsc(
+                        userId,
+                        date,
+                        ReservationStatus.CONFIRMED
+                )
+                .stream()
+                .map(ReservationResponse::from)
+                .toList();
+    }
+
+    public List<ReservationResponse> getReservationsByPeriod(
+            Long userId,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException(
+                    "시작 날짜는 종료 날짜보다 늦을 수 없습니다."
+            );
+        }
+
+        return reservationRepository
+                .findByUserIdAndReservationDateBetweenAndStatusAndDeletedAtIsNullOrderByReservationDateAscReservationTimeAsc(
+                        userId,
+                        startDate,
+                        endDate,
+                        ReservationStatus.CONFIRMED
+                )
+                .stream()
+                .map(ReservationResponse::from)
+                .toList();
     }
 
     private void validateActivityForReservation(Activity activity) {
@@ -257,8 +311,6 @@ public class ReservationService {
         Integer maxParticipants =
                 activity.getMaxParticipants();
 
-
-        // NULL이면 최대 인원 제한 없음
         if (maxParticipants != null
                 && peopleCount > maxParticipants) {
 
@@ -305,9 +357,6 @@ public class ReservationService {
         LocalTime reservationEndTime =
                 reservationTime.plusMinutes(duration);
 
-        /*
-         * 종료시간이 운영 종료시간을 초과하면 불가능
-         */
         if (reservationEndTime.isAfter(
                 operatingEndTime
         )) {
@@ -327,6 +376,27 @@ public class ReservationService {
                         "이미 지난 시간에는 예약할 수 없습니다."
                 );
             }
+        }
+    }
+
+    private void validateDuplicateReservation(
+            Long userId,
+            Long activityId,
+            LocalDate reservationDate
+    ) {
+        boolean exists =
+                reservationRepository
+                        .existsByUserIdAndActivityIdAndReservationDateAndStatusAndDeletedAtIsNull(
+                                userId,
+                                activityId,
+                                reservationDate,
+                                ReservationStatus.CONFIRMED
+                        );
+
+        if (exists) {
+            throw new IllegalArgumentException(
+                    "이미 해당 날짜에 예약한 체험입니다."
+            );
         }
     }
 
