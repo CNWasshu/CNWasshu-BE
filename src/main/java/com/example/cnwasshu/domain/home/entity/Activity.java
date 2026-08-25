@@ -60,6 +60,9 @@ public class Activity extends BaseSoftDeleteEntity {
     @Column(name = "reservation_required")
     private Boolean reservationRequired;
 
+    @Column(name = "max_participants")
+    private Integer maxParticipants;
+
     @Column(name = "today_available")
     private Boolean todayAvailable;
 
