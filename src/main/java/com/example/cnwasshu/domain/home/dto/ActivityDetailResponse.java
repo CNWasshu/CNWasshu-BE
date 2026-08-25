@@ -35,6 +35,7 @@ public class ActivityDetailResponse {
     private Integer duration;
 
     private Boolean reservationRequired;
+    private Integer maxParticipants;
     private Boolean todayAvailable;
 
     private String thumbnail;
@@ -80,6 +81,7 @@ public class ActivityDetailResponse {
                 .duration(activity.getDuration())
 
                 .reservationRequired(activity.getReservationRequired())
+                .maxParticipants(activity.getMaxParticipants())
                 .todayAvailable(activity.getTodayAvailable())
 
                 .thumbnail(activity.getThumbnail())
