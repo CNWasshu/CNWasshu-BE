@@ -16,8 +16,29 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             ReservationStatus status
     );
 
-    List<Reservation> findByUserIdAndDeletedAtIsNullOrderByReservationDateDescReservationTimeDesc(
-            Long userId
+    List<Reservation> findByUserIdAndStatusAndDeletedAtIsNullOrderByReservationDateDescReservationTimeDesc(
+            Long userId,
+            ReservationStatus status
+    );
+
+    List<Reservation> findByUserIdAndReservationDateAndStatusAndDeletedAtIsNullOrderByReservationTimeAsc(
+            Long userId,
+            LocalDate reservationDate,
+            ReservationStatus status
+    );
+
+    List<Reservation> findByUserIdAndReservationDateBetweenAndStatusAndDeletedAtIsNullOrderByReservationDateAscReservationTimeAsc(
+            Long userId,
+            LocalDate startDate,
+            LocalDate endDate,
+            ReservationStatus status
+    );
+
+    boolean existsByUserIdAndActivityIdAndReservationDateAndStatusAndDeletedAtIsNull(
+            Long userId,
+            Long activityId,
+            LocalDate reservationDate,
+            ReservationStatus status
     );
 
     Optional<Reservation> findByIdAndUserIdAndDeletedAtIsNull(

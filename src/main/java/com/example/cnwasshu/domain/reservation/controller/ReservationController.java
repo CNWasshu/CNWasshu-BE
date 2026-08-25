@@ -35,9 +35,69 @@ public class ReservationController {
         );
     }
 
+    @GetMapping
+    public ResponseEntity<List<ReservationResponse>> getReservations(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate date,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate
+    ) {
+
+        Long userId = principal.userId();
+
+        if (date != null) {
+
+            if (startDate != null || endDate != null) {
+                throw new IllegalArgumentException(
+                        "date와 startDate/endDate는 함께 사용할 수 없습니다."
+                );
+            }
+
+            return ResponseEntity.ok(
+                    reservationService.getReservationsByDate(
+                            userId,
+                            date
+                    )
+            );
+        }
+
+        if (startDate != null || endDate != null) {
+
+            if (startDate == null || endDate == null) {
+                throw new IllegalArgumentException(
+                        "기간 조회 시 startDate와 endDate를 모두 입력해야 합니다."
+                );
+            }
+
+            return ResponseEntity.ok(
+                    reservationService.getReservationsByPeriod(
+                            userId,
+                            startDate,
+                            endDate
+                    )
+            );
+        }
+
+        return ResponseEntity.ok(
+                reservationService.getReservations(
+                        userId
+                )
+        );
+    }
+
     @GetMapping("/activities/{activityId}/available-times")
     public ResponseEntity<List<AvailableTimeResponse>> getAvailableTimes(
             @PathVariable Long activityId,
+
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
