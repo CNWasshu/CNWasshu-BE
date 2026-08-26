@@ -10,6 +10,7 @@ public record TimetableScheduleResponse(
         Long scheduleId,
         TimetableScheduleType scheduleType,
         Long activityId,
+        Long restaurantId,
         Long reservationId,
         String title,
         LocalTime startTime,
@@ -24,14 +25,20 @@ public record TimetableScheduleResponse(
             .thenComparing(TimetableScheduleResponse::scheduleId);
 
     public static TimetableScheduleResponse from(CourseItem item) {
-        TimetableScheduleType scheduleType = item.getActivityId() == null
-                ? TimetableScheduleType.FREE
-                : TimetableScheduleType.ACTIVITY;
+        TimetableScheduleType scheduleType;
+        if (item.getActivityId() != null) {
+            scheduleType = TimetableScheduleType.ACTIVITY;
+        } else if (item.getRestaurantId() != null) {
+            scheduleType = TimetableScheduleType.RESTAURANT;
+        } else {
+            scheduleType = TimetableScheduleType.FREE;
+        }
 
         return new TimetableScheduleResponse(
                 item.getId(),
                 scheduleType,
                 item.getActivityId(),
+                item.getRestaurantId(),
                 item.getReservationId(),
                 item.getTitle(),
                 item.getStartTime(),

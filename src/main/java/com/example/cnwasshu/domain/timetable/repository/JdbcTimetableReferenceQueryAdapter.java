@@ -4,6 +4,7 @@ import com.example.cnwasshu.domain.timetable.entity.ActivityOperatingType;
 import com.example.cnwasshu.domain.timetable.service.TimetableActivityInfo;
 import com.example.cnwasshu.domain.timetable.service.TimetableReferenceQueryPort;
 import com.example.cnwasshu.domain.timetable.service.TimetableReservationInfo;
+import com.example.cnwasshu.domain.timetable.service.TimetableRestaurantInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -42,6 +43,15 @@ public class JdbcTimetableReferenceQueryAdapter implements TimetableReferenceQue
                    status
               FROM reservation
              WHERE reservation_id IN (:reservationIds)
+               AND deleted_at IS NULL
+            """;
+
+    private static final String FIND_RESTAURANTS = """
+            SELECT restaurant_id,
+                   operating_start_time,
+                   operating_end_time
+              FROM restaurant
+             WHERE restaurant_id IN (:restaurantIds)
                AND deleted_at IS NULL
             """;
 
@@ -98,6 +108,34 @@ public class JdbcTimetableReferenceQueryAdapter implements TimetableReferenceQue
 
         return reservations.stream().collect(Collectors.toUnmodifiableMap(
                 TimetableReservationInfo::reservationId,
+                Function.identity()
+        ));
+    }
+
+    @Override
+    public Map<Long, TimetableRestaurantInfo> findRestaurants(Set<Long> restaurantIds) {
+        if (restaurantIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<TimetableRestaurantInfo> restaurants = jdbcTemplate.query(
+                FIND_RESTAURANTS,
+                new MapSqlParameterSource("restaurantIds", restaurantIds),
+                (resultSet, rowNumber) -> {
+                    LocalTime operatingStartTime = toLocalTime(resultSet.getTime("operating_start_time"));
+                    LocalTime operatingEndTime = toLocalTime(resultSet.getTime("operating_end_time"));
+
+                    return new TimetableRestaurantInfo(
+                            resultSet.getLong("restaurant_id"),
+                            resolveOperatingType(operatingStartTime, operatingEndTime),
+                            operatingStartTime,
+                            operatingEndTime
+                    );
+                }
+        );
+
+        return restaurants.stream().collect(Collectors.toUnmodifiableMap(
+                TimetableRestaurantInfo::restaurantId,
                 Function.identity()
         ));
     }

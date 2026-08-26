@@ -17,6 +17,7 @@ public record TimetableScheduleRequest(
         TimetableScheduleType scheduleType,
 
         Long activityId,
+        Long restaurantId,
         Long reservationId,
 
         @NotBlank

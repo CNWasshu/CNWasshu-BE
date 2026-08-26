@@ -7,5 +7,7 @@ public interface TimetableReferenceQueryPort {
 
     Map<Long, TimetableActivityInfo> findActivities(Set<Long> activityIds);
 
+    Map<Long, TimetableRestaurantInfo> findRestaurants(Set<Long> restaurantIds);
+
     Map<Long, TimetableReservationInfo> findReservations(Set<Long> reservationIds);
 }
