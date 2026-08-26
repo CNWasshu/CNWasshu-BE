@@ -50,6 +50,11 @@ public class AuthService {
                 kakaoUserInfo.profileImage()
         )));
 
+        // 소프트 삭제(탈퇴)했던 계정이 같은 kakao_id로 재로그인하면 탈퇴를 취소하고 정상 로그인 처리한다.
+        if (user.isDeleted()) {
+            user.restore();
+        }
+
         return issueTokens(user, isNewUser);
     }
 
