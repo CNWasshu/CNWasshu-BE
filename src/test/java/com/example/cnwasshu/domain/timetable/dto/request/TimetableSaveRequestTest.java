@@ -63,6 +63,7 @@ class TimetableSaveRequestTest {
                 null,
                 null,
                 null,
+                null,
                 " ",
                 null,
                 null,
@@ -98,6 +99,7 @@ class TimetableSaveRequestTest {
         TimetableScheduleRequest schedule = new TimetableScheduleRequest(
                 "local-1",
                 TimetableScheduleType.FREE,
+                null,
                 null,
                 null,
                 "점심 식사",

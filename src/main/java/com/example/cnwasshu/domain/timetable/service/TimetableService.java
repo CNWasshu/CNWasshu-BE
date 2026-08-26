@@ -62,6 +62,7 @@ public class TimetableService {
     private CourseItem toCourseItem(Integer dayNo, TimetableScheduleRequest schedule) {
         return CourseItem.builder()
                 .activityId(schedule.activityId())
+                .restaurantId(schedule.restaurantId())
                 .reservationId(schedule.reservationId())
                 .title(schedule.title().trim())
                 .dayNo(dayNo)

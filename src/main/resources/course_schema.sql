@@ -19,6 +19,7 @@ CREATE TABLE course_item (
                              course_item_id  BIGINT AUTO_INCREMENT PRIMARY KEY,
                              course_id       BIGINT NOT NULL,
                              activity_id     BIGINT NULL,
+                             restaurant_id   BIGINT NULL,
                              reservation_id  BIGINT NULL,
                              title           VARCHAR(100) NOT NULL,
                              day_no          INT NOT NULL,
@@ -33,6 +34,7 @@ CREATE TABLE course_item (
                              updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                              CONSTRAINT fk_course_item_course FOREIGN KEY (course_id) REFERENCES course(course_id) ON DELETE CASCADE,
                              CONSTRAINT fk_course_item_activity FOREIGN KEY (activity_id) REFERENCES activity(activity_id),
+                             CONSTRAINT fk_course_item_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurant(restaurant_id),
                              CONSTRAINT fk_course_item_reservation FOREIGN KEY (reservation_id) REFERENCES reservation(reservation_id),
                              INDEX idx_course_item_course_day (course_id, day_no)
 ) ENGINE=InnoDB;

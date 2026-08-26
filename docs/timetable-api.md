@@ -15,11 +15,12 @@
 
 ### 일정 데이터 구분
 
-| 일정 종류 | activityId | reservationId |
-| --- | --- | --- |
-| 자유 일정 | `null` | `null` |
-| 예약 불필요 체험 | 필수 | `null` |
-| 예약 완료 체험 | 필수 | 필수 |
+| 일정 종류 | activityId | restaurantId | reservationId |
+| --- | --- | --- | --- |
+| 자유 일정 | `null` | `null` | `null` |
+| 예약 불필요 체험 | 필수 | `null` | `null` |
+| 예약 완료 체험 | 필수 | `null` | 필수 |
+| 음식점 | `null` | 필수 | `null` |
 
 예약 필수 체험은 체험 선택 직후 저장하지 않는다. 예약 페이지에서 예약을 완료한 뒤 발급받은 `reservationId`와 함께 타임테이블에 추가한다. 예약을 취소하거나 예약에 실패하면 타임테이블에 추가하지 않는다.
 
@@ -68,6 +69,7 @@ POST /api/timetables
           "clientScheduleId": "local-1",
           "scheduleType": "FREE",
           "activityId": null,
+          "restaurantId": null,
           "reservationId": null,
           "title": "점심 식사",
           "startTime": "12:00",
@@ -79,6 +81,7 @@ POST /api/timetables
           "clientScheduleId": "local-2",
           "scheduleType": "ACTIVITY",
           "activityId": 101,
+          "restaurantId": null,
           "reservationId": 9001,
           "title": "논산 딸기 수확 체험",
           "startTime": "15:00",
@@ -115,6 +118,7 @@ POST /api/timetables
           "scheduleId": 501,
           "scheduleType": "FREE",
           "activityId": null,
+          "restaurantId": null,
           "reservationId": null,
           "title": "점심 식사",
           "startTime": "12:00",
@@ -180,7 +184,15 @@ GET /api/timetables/saved-activities
 - 시작 시간이 예약 시간과 일치하는지
 - 종료 시간이 `예약 시간 + 체험 소요 시간`과 일치하는지
 
-## 6. 오류 응답
+## 6. 음식점 일정 추가 규칙
+
+장바구니 조회 API(`/api/bookmarks`)에서 `type=RESTAURANT`인 항목은
+`scheduleType=RESTAURANT`와 `restaurantId`를 사용해 저장한다.
+
+서버는 음식점의 존재 여부와 일정 시간이 운영시간 안에 있는지 검증한다.
+운영 시작·종료 시간이 모두 없는 음식점은 상시 운영으로 처리한다.
+
+## 7. 오류 응답
 
 공통 오류 형식을 사용한다.
 
@@ -197,6 +209,8 @@ GET /api/timetables/saved-activities
 | 400 | `INVALID_SCHEDULE_TIME` | 시작·종료 시간이 올바르지 않음 |
 | 400 | `INVALID_SCHEDULE_TYPE` | 일정 종류와 참조 ID 조합이 올바르지 않음 |
 | 400 | `ACTIVITY_OUTSIDE_OPERATING_HOURS` | 체험 운영시간을 벗어남 |
+| 400 | `RESTAURANT_OUTSIDE_OPERATING_HOURS` | 음식점 운영시간을 벗어남 |
 | 400 | `ACTIVITY_RESERVATION_REQUIRED` | 예약 필수 체험에 완료된 예약이 없음 |
 | 400 | `INVALID_ACTIVITY_RESERVATION` | 예약의 사용자·체험·날짜·시간이 일치하지 않음 |
+| 404 | `TIMETABLE_RESTAURANT_NOT_FOUND` | 음식점을 찾을 수 없음 |
 | 409 | `SCHEDULE_TIME_CONFLICT` | 같은 날짜의 일정 시간이 겹침 |

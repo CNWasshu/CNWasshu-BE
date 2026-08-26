@@ -32,6 +32,9 @@ public class CourseItem {
     @Column(name = "activity_id")
     private Long activityId;
 
+    @Column(name = "restaurant_id")
+    private Long restaurantId;
+
     @Column(name = "reservation_id")
     private Long reservationId;
 
@@ -71,10 +74,11 @@ public class CourseItem {
     private LocalDateTime updatedAt;
 
     @Builder
-    public CourseItem(Long activityId, Long reservationId, String title, Integer dayNo,
+    public CourseItem(Long activityId, Long restaurantId, Long reservationId, String title, Integer dayNo,
                       LocalTime startTime, LocalTime endTime, String memo, Integer sortOrder,
                       String address, BigDecimal latitude, BigDecimal longitude) {
         this.activityId = activityId;
+        this.restaurantId = restaurantId;
         this.reservationId = reservationId;
         this.title = title;
         this.dayNo = dayNo;

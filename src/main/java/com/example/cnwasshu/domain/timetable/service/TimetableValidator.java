@@ -12,8 +12,10 @@ import com.example.cnwasshu.domain.timetable.exception.InvalidScheduleTimeExcept
 import com.example.cnwasshu.domain.timetable.exception.InvalidScheduleTypeException;
 import com.example.cnwasshu.domain.timetable.exception.InvalidTimetableDayException;
 import com.example.cnwasshu.domain.timetable.exception.InvalidTimetablePeriodException;
+import com.example.cnwasshu.domain.timetable.exception.RestaurantOutsideOperatingHoursException;
 import com.example.cnwasshu.domain.timetable.exception.ScheduleTimeConflictException;
 import com.example.cnwasshu.domain.timetable.exception.TimetableActivityNotFoundException;
+import com.example.cnwasshu.domain.timetable.exception.TimetableRestaurantNotFoundException;
 import com.example.cnwasshu.domain.timetable.exception.TimetableScheduleRequiredException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -49,6 +51,9 @@ public class TimetableValidator {
         Map<Long, TimetableActivityInfo> activities = referenceQueryPort.findActivities(
                 collectActivityIds(allSchedules)
         );
+        Map<Long, TimetableRestaurantInfo> restaurants = referenceQueryPort.findRestaurants(
+                collectRestaurantIds(allSchedules)
+        );
         Map<Long, TimetableReservationInfo> reservations = referenceQueryPort.findReservations(
                 collectReservationIds(allSchedules)
         );
@@ -56,7 +61,7 @@ public class TimetableValidator {
         request.days().forEach(day -> {
             day.schedules().forEach(schedule -> {
                 validateScheduleTime(schedule);
-                validateActivityAndReservation(userId, day.date(), schedule, activities, reservations);
+                validateReferences(userId, day.date(), schedule, activities, restaurants, reservations);
             });
             validateNoOverlap(day.dayNo(), day.schedules());
         });
@@ -101,12 +106,18 @@ public class TimetableValidator {
     private void validateScheduleType(TimetableScheduleRequest schedule) {
         boolean validFreeSchedule = schedule.scheduleType() == TimetableScheduleType.FREE
                 && schedule.activityId() == null
+                && schedule.restaurantId() == null
                 && schedule.reservationId() == null;
         boolean validActivitySchedule = schedule.scheduleType() == TimetableScheduleType.ACTIVITY
                 && isPositive(schedule.activityId())
+                && schedule.restaurantId() == null
                 && (schedule.reservationId() == null || isPositive(schedule.reservationId()));
+        boolean validRestaurantSchedule = schedule.scheduleType() == TimetableScheduleType.RESTAURANT
+                && schedule.activityId() == null
+                && isPositive(schedule.restaurantId())
+                && schedule.reservationId() == null;
 
-        if (!validFreeSchedule && !validActivitySchedule) {
+        if (!validFreeSchedule && !validActivitySchedule && !validRestaurantSchedule) {
             throw new InvalidScheduleTypeException(schedule.clientScheduleId());
         }
     }
@@ -133,20 +144,35 @@ public class TimetableValidator {
         return reservationIds;
     }
 
+    private Set<Long> collectRestaurantIds(List<TimetableScheduleRequest> schedules) {
+        Set<Long> restaurantIds = new HashSet<>();
+        schedules.stream()
+                .map(TimetableScheduleRequest::restaurantId)
+                .filter(id -> id != null)
+                .forEach(restaurantIds::add);
+        return restaurantIds;
+    }
+
     private void validateScheduleTime(TimetableScheduleRequest schedule) {
         if (!schedule.startTime().isBefore(schedule.endTime())) {
             throw new InvalidScheduleTimeException(schedule.clientScheduleId());
         }
     }
 
-    private void validateActivityAndReservation(
+    private void validateReferences(
             Long userId,
             LocalDate scheduleDate,
             TimetableScheduleRequest schedule,
             Map<Long, TimetableActivityInfo> activities,
+            Map<Long, TimetableRestaurantInfo> restaurants,
             Map<Long, TimetableReservationInfo> reservations
     ) {
         if (schedule.scheduleType() == TimetableScheduleType.FREE) {
+            return;
+        }
+
+        if (schedule.scheduleType() == TimetableScheduleType.RESTAURANT) {
+            validateRestaurant(schedule, restaurants);
             return;
         }
 
@@ -160,6 +186,26 @@ public class TimetableValidator {
             validateRequiredReservation(userId, scheduleDate, schedule, activity, reservations);
         } else if (schedule.reservationId() != null) {
             throw new InvalidActivityReservationException(schedule.activityId(), schedule.reservationId());
+        }
+    }
+
+    private void validateRestaurant(
+            TimetableScheduleRequest schedule,
+            Map<Long, TimetableRestaurantInfo> restaurants
+    ) {
+        TimetableRestaurantInfo restaurant = restaurants.get(schedule.restaurantId());
+        if (restaurant == null) {
+            throw new TimetableRestaurantNotFoundException(schedule.restaurantId());
+        }
+
+        if (restaurant.operatingType() == ActivityOperatingType.ALWAYS) {
+            return;
+        }
+
+        boolean startsBeforeOpening = schedule.startTime().isBefore(restaurant.operatingStartTime());
+        boolean endsAfterClosing = schedule.endTime().isAfter(restaurant.operatingEndTime());
+        if (startsBeforeOpening || endsAfterClosing) {
+            throw new RestaurantOutsideOperatingHoursException(restaurant.restaurantId());
         }
     }
 
