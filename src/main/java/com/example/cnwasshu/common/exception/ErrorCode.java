@@ -28,7 +28,10 @@ public enum ErrorCode {
     INVALID_ACTIVITY_RESERVATION(HttpStatus.BAD_REQUEST, "체험과 예약 정보가 일치하지 않습니다."),
     SCHEDULE_TIME_CONFLICT(HttpStatus.CONFLICT, "같은 날짜에 시간이 겹치는 일정이 있습니다."),
 
-    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다.");
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
+
+    STAMP_ACTIVITY_NOT_FOUND(HttpStatus.NOT_FOUND, "QR 코드에 해당하는 체험을 찾을 수 없습니다."),
+    STAMP_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 획득한 스탬프입니다.");
 
     private final HttpStatus status;
     private final String message;

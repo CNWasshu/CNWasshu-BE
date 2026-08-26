@@ -30,4 +30,6 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
     List<Activity> findByDeletedAtIsNull();
 
     Optional<Activity> findByIdAndDeletedAtIsNull(Long id);
+
+    Optional<Activity> findByQrCodeAndDeletedAtIsNull(String qrCode);
 }
