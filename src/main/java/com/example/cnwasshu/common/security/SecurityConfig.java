@@ -66,7 +66,10 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
-                "X-USER-ID"
+                "X-USER-ID",
+                // 로컬 개발 중 폰 테스트용 ngrok 터널의 무료 티어 경고 페이지를 우회하기 위한 헤더.
+                // 프론트가 모든 요청에 붙여 보내므로 CORS 허용 헤더에도 추가해야 함.
+                "ngrok-skip-browser-warning"
         ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
