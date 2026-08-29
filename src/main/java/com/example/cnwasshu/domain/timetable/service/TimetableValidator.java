@@ -38,7 +38,7 @@ public class TimetableValidator {
 
     private final TimetableReferenceQueryPort referenceQueryPort;
 
-    public void validate(Long userId, TimetableSaveRequest request) {
+    public TimetableReferenceData validate(Long userId, TimetableSaveRequest request) {
         int tripDayCount = validatePeriod(request.startDate(), request.endDate());
         validateDays(request.days(), request.startDate(), tripDayCount);
         validateScheduleExists(request.days());
@@ -65,6 +65,8 @@ public class TimetableValidator {
             });
             validateNoOverlap(day.dayNo(), day.schedules());
         });
+
+        return new TimetableReferenceData(activities, restaurants, reservations);
     }
 
     private int validatePeriod(LocalDate startDate, LocalDate endDate) {

@@ -46,7 +46,10 @@ class TimetableValidatorTest {
                                 RESTAURANT_ID,
                                 ActivityOperatingType.HOURS,
                                 LocalTime.of(11, 0),
-                                LocalTime.of(21, 0)
+                                LocalTime.of(21, 0),
+                                "주소",
+                                null,
+                                null
                         )
                 ));
 
@@ -78,7 +81,10 @@ class TimetableValidatorTest {
                                 RESTAURANT_ID,
                                 ActivityOperatingType.HOURS,
                                 LocalTime.of(11, 0),
-                                LocalTime.of(21, 0)
+                                LocalTime.of(21, 0),
+                                "주소",
+                                null,
+                                null
                         )
                 ));
 
