@@ -23,12 +23,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JdbcTimetableReferenceQueryAdapter implements TimetableReferenceQueryPort {
 
+    // 기존 location 데이터는 POINT(latitude longitude) 순서로 저장되어 있다.
     private static final String FIND_ACTIVITIES = """
             SELECT activity_id,
                    operating_start_time,
                    operating_end_time,
                    duration,
-                   reservation_required
+                   reservation_required,
+                   address,
+                   ST_X(location) AS latitude,
+                   ST_Y(location) AS longitude
               FROM activity
              WHERE activity_id IN (:activityIds)
                AND deleted_at IS NULL
@@ -49,7 +53,10 @@ public class JdbcTimetableReferenceQueryAdapter implements TimetableReferenceQue
     private static final String FIND_RESTAURANTS = """
             SELECT restaurant_id,
                    operating_start_time,
-                   operating_end_time
+                   operating_end_time,
+                   address,
+                   ST_X(location) AS latitude,
+                   ST_Y(location) AS longitude
               FROM restaurant
              WHERE restaurant_id IN (:restaurantIds)
                AND deleted_at IS NULL
@@ -76,7 +83,10 @@ public class JdbcTimetableReferenceQueryAdapter implements TimetableReferenceQue
                             operatingStartTime,
                             operatingEndTime,
                             resultSet.getObject("duration", Integer.class),
-                            resultSet.getBoolean("reservation_required")
+                            resultSet.getBoolean("reservation_required"),
+                            resultSet.getString("address"),
+                            resultSet.getBigDecimal("latitude"),
+                            resultSet.getBigDecimal("longitude")
                     );
                 }
         );
@@ -129,7 +139,10 @@ public class JdbcTimetableReferenceQueryAdapter implements TimetableReferenceQue
                             resultSet.getLong("restaurant_id"),
                             resolveOperatingType(operatingStartTime, operatingEndTime),
                             operatingStartTime,
-                            operatingEndTime
+                            operatingEndTime,
+                            resultSet.getString("address"),
+                            resultSet.getBigDecimal("latitude"),
+                            resultSet.getBigDecimal("longitude")
                     );
                 }
         );

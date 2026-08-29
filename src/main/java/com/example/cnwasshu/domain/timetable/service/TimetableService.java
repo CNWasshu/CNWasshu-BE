@@ -34,7 +34,7 @@ public class TimetableService {
 
     @Transactional
     public TimetableDetailResponse createTimetable(Long userId, TimetableSaveRequest request) {
-        timetableValidator.validate(userId, request);
+        TimetableReferenceData referenceData = timetableValidator.validate(userId, request);
 
         Course course = Course.builder()
                 .userId(userId)
@@ -46,20 +46,31 @@ public class TimetableService {
                 .endDate(request.endDate())
                 .build();
 
-        toCourseItems(request).forEach(course::addItem);
+        toCourseItems(request, referenceData).forEach(course::addItem);
 
         Course savedCourse = courseRepository.saveAndFlush(course);
         return TimetableDetailResponse.from(savedCourse);
     }
 
-    private List<CourseItem> toCourseItems(TimetableSaveRequest request) {
+    private List<CourseItem> toCourseItems(TimetableSaveRequest request, TimetableReferenceData referenceData) {
         return request.days().stream()
                 .flatMap(day -> day.schedules().stream()
-                        .map(schedule -> toCourseItem(day.dayNo(), schedule)))
+                        .map(schedule -> toCourseItem(day.dayNo(), schedule, referenceData)))
                 .toList();
     }
 
-    private CourseItem toCourseItem(Integer dayNo, TimetableScheduleRequest schedule) {
+    private CourseItem toCourseItem(
+            Integer dayNo,
+            TimetableScheduleRequest schedule,
+            TimetableReferenceData referenceData
+    ) {
+        TimetableActivityInfo activity = schedule.activityId() == null
+                ? null
+                : referenceData.activities().get(schedule.activityId());
+        TimetableRestaurantInfo restaurant = schedule.restaurantId() == null
+                ? null
+                : referenceData.restaurants().get(schedule.restaurantId());
+
         return CourseItem.builder()
                 .activityId(schedule.activityId())
                 .restaurantId(schedule.restaurantId())
@@ -70,6 +81,9 @@ public class TimetableService {
                 .endTime(schedule.endTime())
                 .memo(normalizeNullableText(schedule.memo()))
                 .sortOrder(schedule.sortOrder())
+                .address(activity != null ? activity.address() : restaurant != null ? restaurant.address() : null)
+                .latitude(activity != null ? activity.latitude() : restaurant != null ? restaurant.latitude() : null)
+                .longitude(activity != null ? activity.longitude() : restaurant != null ? restaurant.longitude() : null)
                 .build();
     }
 
