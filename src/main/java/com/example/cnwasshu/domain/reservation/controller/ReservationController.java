@@ -96,6 +96,7 @@ public class ReservationController {
 
     @GetMapping("/activities/{activityId}/available-times")
     public ResponseEntity<List<AvailableTimeResponse>> getAvailableTimes(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
             @PathVariable Long activityId,
 
             @RequestParam
@@ -104,6 +105,7 @@ public class ReservationController {
     ) {
         return ResponseEntity.ok(
                 reservationService.getAvailableTimes(
+                        principal.userId(),
                         activityId,
                         date
                 )
