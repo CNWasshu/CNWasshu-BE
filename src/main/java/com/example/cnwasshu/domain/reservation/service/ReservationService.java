@@ -1,5 +1,7 @@
 package com.example.cnwasshu.domain.reservation.service;
 
+import com.example.cnwasshu.common.exception.BusinessException;
+import com.example.cnwasshu.common.exception.ErrorCode;
 import com.example.cnwasshu.domain.home.entity.Activity;
 import com.example.cnwasshu.domain.home.entity.ActivityStatus;
 import com.example.cnwasshu.domain.home.repository.ActivityRepository;
@@ -68,7 +70,15 @@ public class ReservationService {
                 request.reservationTime()
         );
 
-        validateNoTimeConflict(
+        validateActivityTimeConflict(
+                activity,
+                request.reservationDate(),
+                request.reservationTime(),
+                null
+        );
+
+        validateUserTimeConflict(
+                userId,
                 activity,
                 request.reservationDate(),
                 request.reservationTime(),
@@ -91,6 +101,7 @@ public class ReservationService {
     }
 
     public List<AvailableTimeResponse> getAvailableTimes(
+            Long userId,
             Long activityId,
             LocalDate date
     ) {
@@ -114,10 +125,18 @@ public class ReservationService {
             return List.of();
         }
 
-        List<Reservation> reservations =
+        List<Reservation> activityReservations =
                 reservationRepository
                         .findByActivityIdAndReservationDateAndStatusAndDeletedAtIsNull(
                                 activityId,
+                                date,
+                                ReservationStatus.CONFIRMED
+                        );
+
+        List<Reservation> userReservations =
+                reservationRepository
+                        .findByUserIdAndReservationDateAndStatusAndDeletedAtIsNullOrderByReservationTimeAsc(
+                                userId,
                                 date,
                                 ReservationStatus.CONFIRMED
                         );
@@ -136,19 +155,28 @@ public class ReservationService {
                 break;
             }
 
-            boolean available =
-                    isTimeAvailable(
+            boolean activityAvailable =
+                    isActivityTimeAvailable(
                             activity,
                             date,
                             slotTime,
-                            reservations,
+                            activityReservations,
+                            null
+                    );
+
+            boolean userAvailable =
+                    isUserTimeAvailable(
+                            activity,
+                            date,
+                            slotTime,
+                            userReservations,
                             null
                     );
 
             result.add(
                     new AvailableTimeResponse(
                             slotTime,
-                            available
+                            activityAvailable && userAvailable
                     )
             );
 
@@ -425,7 +453,7 @@ public class ReservationService {
         return difference % 60 == 0;
     }
 
-    private void validateNoTimeConflict(
+    private void validateActivityTimeConflict(
             Activity activity,
             LocalDate reservationDate,
             LocalTime reservationTime,
@@ -441,7 +469,7 @@ public class ReservationService {
                         );
 
         boolean available =
-                isTimeAvailable(
+                isActivityTimeAvailable(
                         activity,
                         reservationDate,
                         reservationTime,
@@ -456,7 +484,39 @@ public class ReservationService {
         }
     }
 
-    private boolean isTimeAvailable(
+    private void validateUserTimeConflict(
+            Long userId,
+            Activity activity,
+            LocalDate reservationDate,
+            LocalTime reservationTime,
+            Long excludeReservationId
+    ) {
+
+        List<Reservation> userReservations =
+                reservationRepository
+                        .findByUserIdAndReservationDateAndStatusAndDeletedAtIsNullOrderByReservationTimeAsc(
+                                userId,
+                                reservationDate,
+                                ReservationStatus.CONFIRMED
+                        );
+
+        boolean available =
+                isUserTimeAvailable(
+                        activity,
+                        reservationDate,
+                        reservationTime,
+                        userReservations,
+                        excludeReservationId
+                );
+
+        if (!available) {
+            throw new BusinessException(
+                    ErrorCode.RESERVATION_TIME_CONFLICT
+            );
+        }
+    }
+
+    private boolean isActivityTimeAvailable(
             Activity activity,
             LocalDate date,
             LocalTime newStartTime,
@@ -484,22 +544,71 @@ public class ReservationService {
         for (Reservation reservation : reservations) {
 
             if (excludeReservationId != null
-                    && reservation.getId()
-                    .equals(excludeReservationId)) {
+                    && reservation.getId().equals(excludeReservationId)) {
                 continue;
             }
 
             LocalTime existingStartTime =
                     reservation.getReservationTime();
 
+            Integer existingDuration =
+                    reservation.getActivity().getDuration();
+
             LocalTime existingEndTime =
-                    existingStartTime.plusMinutes(duration);
+                    existingStartTime.plusMinutes(existingDuration);
 
             boolean overlap =
-                    newStartTime.isBefore(existingEndTime)
-                            && newEndTime.isAfter(
-                            existingStartTime
-                    );
+                    existingStartTime.isBefore(newEndTime)
+                            && newStartTime.isBefore(existingEndTime);
+
+            if (overlap) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isUserTimeAvailable(
+            Activity activity,
+            LocalDate date,
+            LocalTime newStartTime,
+            List<Reservation> reservations,
+            Long excludeReservationId
+    ) {
+        LocalDate today = LocalDate.now();
+
+        if (date.equals(today)) {
+
+            LocalTime now = LocalTime.now();
+
+            if (!newStartTime.isAfter(now)) {
+                return false;
+            }
+        }
+
+        LocalTime newEndTime =
+                newStartTime.plusMinutes(activity.getDuration());
+
+        for (Reservation reservation : reservations) {
+
+            if (excludeReservationId != null
+                    && reservation.getId().equals(excludeReservationId)) {
+                continue;
+            }
+
+            LocalTime existingStartTime =
+                    reservation.getReservationTime();
+
+            Integer existingDuration =
+                    reservation.getActivity().getDuration();
+
+            LocalTime existingEndTime =
+                    existingStartTime.plusMinutes(existingDuration);
+
+            boolean overlap =
+                    existingStartTime.isBefore(newEndTime)
+                            && newStartTime.isBefore(existingEndTime);
 
             if (overlap) {
                 return false;
