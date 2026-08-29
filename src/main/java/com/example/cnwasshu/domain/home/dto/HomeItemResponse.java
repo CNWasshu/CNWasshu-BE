@@ -15,6 +15,7 @@ public record HomeItemResponse(
         String thumbnail,
         LocalTime operatingStartTime,
         LocalTime operatingEndTime,
+        Integer maxParticipants,
         Boolean reservationRequired,
         Boolean todayAvailable,
         List<String> weatherTags,
