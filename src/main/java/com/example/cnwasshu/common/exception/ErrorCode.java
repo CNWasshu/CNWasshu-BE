@@ -31,6 +31,9 @@ public enum ErrorCode {
     SCHEDULE_TIME_CONFLICT(HttpStatus.CONFLICT, "같은 날짜에 시간이 겹치는 일정이 있습니다."),
 
     RESERVATION_TIME_CONFLICT(HttpStatus.CONFLICT, "해당 시간에 이미 예약된 체험이 있습니다."),
+    RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "예약 내역을 찾을 수 없습니다."),
+    RESERVATION_ALREADY_CANCELLED(HttpStatus.CONFLICT, "이미 취소된 예약입니다."),
+    RESERVATION_CANCEL_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "당일 예약은 앱에서 취소할 수 없습니다. 전화로 문의해 주세요."),
 
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
 

@@ -111,4 +111,17 @@ public class ReservationController {
                 )
         );
     }
+
+    @PatchMapping("/{reservationId}/cancel")
+    public ResponseEntity<Void> cancelReservation(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long reservationId
+    ) {
+        reservationService.cancelReservation(
+                principal.userId(),
+                reservationId
+        );
+
+        return ResponseEntity.noContent().build();
+    }
 }
