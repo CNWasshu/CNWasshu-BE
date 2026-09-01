@@ -238,6 +238,41 @@ public class ReservationService {
                 .toList();
     }
 
+    @Transactional
+    public void cancelReservation(
+            Long userId,
+            Long reservationId
+    ) {
+        Reservation reservation =
+                reservationRepository
+                        .findByIdAndUserIdAndDeletedAtIsNull(
+                                reservationId,
+                                userId
+                        )
+                        .orElseThrow(() ->
+                                new BusinessException(
+                                        ErrorCode.RESERVATION_NOT_FOUND
+                                )
+                        );
+
+        if (reservation.getStatus()
+                == ReservationStatus.CANCELLED) {
+            throw new BusinessException(
+                    ErrorCode.RESERVATION_ALREADY_CANCELLED
+            );
+        }
+
+        LocalDate today = LocalDate.now();
+
+        if (!reservation.getReservationDate().isAfter(today)) {
+            throw new BusinessException(
+                    ErrorCode.RESERVATION_CANCEL_NOT_ALLOWED
+            );
+        }
+
+        reservation.cancel();
+    }
+
     private void validateActivityForReservation(Activity activity) {
 
         if (!Boolean.TRUE.equals(activity.getReservationRequired())) {
@@ -535,16 +570,17 @@ public class ReservationService {
             }
         }
 
-        Integer duration =
-                activity.getDuration();
-
         LocalTime newEndTime =
-                newStartTime.plusMinutes(duration);
+                newStartTime.plusMinutes(
+                        activity.getDuration()
+                );
 
         for (Reservation reservation : reservations) {
 
             if (excludeReservationId != null
-                    && reservation.getId().equals(excludeReservationId)) {
+                    && reservation.getId().equals(
+                    excludeReservationId
+            )) {
                 continue;
             }
 
@@ -555,11 +591,15 @@ public class ReservationService {
                     reservation.getActivity().getDuration();
 
             LocalTime existingEndTime =
-                    existingStartTime.plusMinutes(existingDuration);
+                    existingStartTime.plusMinutes(
+                            existingDuration
+                    );
 
             boolean overlap =
                     existingStartTime.isBefore(newEndTime)
-                            && newStartTime.isBefore(existingEndTime);
+                            && newStartTime.isBefore(
+                            existingEndTime
+                    );
 
             if (overlap) {
                 return false;
@@ -588,12 +628,16 @@ public class ReservationService {
         }
 
         LocalTime newEndTime =
-                newStartTime.plusMinutes(activity.getDuration());
+                newStartTime.plusMinutes(
+                        activity.getDuration()
+                );
 
         for (Reservation reservation : reservations) {
 
             if (excludeReservationId != null
-                    && reservation.getId().equals(excludeReservationId)) {
+                    && reservation.getId().equals(
+                    excludeReservationId
+            )) {
                 continue;
             }
 
@@ -604,11 +648,15 @@ public class ReservationService {
                     reservation.getActivity().getDuration();
 
             LocalTime existingEndTime =
-                    existingStartTime.plusMinutes(existingDuration);
+                    existingStartTime.plusMinutes(
+                            existingDuration
+                    );
 
             boolean overlap =
                     existingStartTime.isBefore(newEndTime)
-                            && newStartTime.isBefore(existingEndTime);
+                            && newStartTime.isBefore(
+                            existingEndTime
+                    );
 
             if (overlap) {
                 return false;
