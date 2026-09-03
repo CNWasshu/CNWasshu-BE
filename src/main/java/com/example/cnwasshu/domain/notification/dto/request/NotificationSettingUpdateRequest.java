@@ -5,6 +5,7 @@ public record NotificationSettingUpdateRequest(
         Boolean reservationDayBefore,
         Boolean reservation3hBefore,
         Boolean reservation1hBefore,
-        Boolean reservation30mBefore
+        Boolean reservation30mBefore,
+        Boolean surveyEnabled
 ) {
 }

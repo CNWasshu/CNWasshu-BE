@@ -7,7 +7,8 @@ public record NotificationSettingResponse(
         boolean reservationDayBefore,
         boolean reservation3hBefore,
         boolean reservation1hBefore,
-        boolean reservation30mBefore
+        boolean reservation30mBefore,
+        boolean surveyEnabled
 ) {
 
     public static NotificationSettingResponse from(NotificationSetting setting) {
@@ -16,7 +17,8 @@ public record NotificationSettingResponse(
                 setting.isReservationDayBefore(),
                 setting.isReservation3hBefore(),
                 setting.isReservation1hBefore(),
-                setting.isReservation30mBefore()
+                setting.isReservation30mBefore(),
+                setting.isSurveyEnabled()
         );
     }
 }
