@@ -9,6 +9,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -27,6 +29,8 @@ public class SecurityConfig {
 
     private static final String[] PERMIT_ALL_PATHS = {
             "/api/auth/kakao",
+            "/api/auth/signup",
+            "/api/auth/login",
             "/api/auth/refresh",
             // TODO: course 도메인이 JWT 인증으로 전환되면 제거. 현재 X-USER-ID 헤더로 임시 인증 중 (CourseController 참고)
             "/api/courses/**",
@@ -52,6 +56,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
