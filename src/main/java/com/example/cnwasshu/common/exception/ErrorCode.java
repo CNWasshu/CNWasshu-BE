@@ -37,6 +37,8 @@ public enum ErrorCode {
 
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
 
+    SURVEY_NOT_FOUND(HttpStatus.NOT_FOUND, "만족도 조사를 찾을 수 없습니다."),
+
     STAMP_ACTIVITY_NOT_FOUND(HttpStatus.NOT_FOUND, "QR 코드에 해당하는 체험을 찾을 수 없습니다."),
     STAMP_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 획득한 스탬프입니다.");
 
