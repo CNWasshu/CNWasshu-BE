@@ -157,4 +157,10 @@ public class CourseSurvey extends BaseTimeEntity {
         this.status = SurveyStatus.SNOOZED;
         this.scheduledAt = nextScheduledAt;
     }
+
+    public void reschedule(LocalDateTime nextScheduledAt) {
+        if (status == SurveyStatus.SCHEDULED) {
+            this.scheduledAt = nextScheduledAt;
+        }
+    }
 }
