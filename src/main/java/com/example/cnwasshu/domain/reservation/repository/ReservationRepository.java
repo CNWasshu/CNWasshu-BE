@@ -34,6 +34,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             ReservationStatus status
     );
 
+    List<Reservation> findByReservationDateBetweenAndStatusAndDeletedAtIsNullOrderByReservationDateAscReservationTimeAsc(
+            LocalDate startDate,
+            LocalDate endDate,
+            ReservationStatus status
+    );
+
     boolean existsByUserIdAndActivityIdAndReservationDateAndStatusAndDeletedAtIsNull(
             Long userId,
             Long activityId,
