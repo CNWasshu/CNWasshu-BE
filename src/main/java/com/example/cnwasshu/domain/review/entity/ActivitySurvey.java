@@ -112,4 +112,28 @@ public class ActivitySurvey extends BaseTimeEntity {
                 visitEvidenceType
         );
     }
+
+    public void updateDraft(
+            VisitStatus visitStatus,
+            Boolean recommended,
+            Integer satisfactionScore,
+            String reasonTags,
+            String comment
+    ) {
+        if (visitStatus != null) {
+            this.visitStatus = visitStatus;
+        }
+        if (recommended != null) {
+            this.recommended = recommended;
+        }
+        if (satisfactionScore != null) {
+            this.satisfactionScore = satisfactionScore;
+        }
+        if (reasonTags != null) {
+            this.reasonTags = reasonTags;
+        }
+        if (comment != null) {
+            this.comment = comment;
+        }
+    }
 }

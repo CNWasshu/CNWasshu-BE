@@ -109,4 +109,40 @@ public class CourseSurvey extends BaseTimeEntity {
     ) {
         return new CourseSurvey(userId, courseId, courseDate, surveyType, scheduledAt);
     }
+
+    public void updateDraft(
+            CourseUsageStatus courseUsageStatus,
+            Integer overallScore,
+            CoursePace coursePace,
+            String issueTags,
+            String notUsedReasonTags,
+            String comment
+    ) {
+        if (courseUsageStatus != null) {
+            this.courseUsageStatus = courseUsageStatus;
+        }
+        if (overallScore != null) {
+            this.overallScore = overallScore;
+        }
+        if (coursePace != null) {
+            this.coursePace = coursePace;
+        }
+        if (issueTags != null) {
+            this.issueTags = issueTags;
+        }
+        if (notUsedReasonTags != null) {
+            this.notUsedReasonTags = notUsedReasonTags;
+        }
+        if (comment != null) {
+            this.comment = comment;
+        }
+        this.status = SurveyStatus.IN_PROGRESS;
+    }
+
+    public boolean isEditable() {
+        return status != SurveyStatus.COMPLETED
+                && status != SurveyStatus.NOT_USED
+                && status != SurveyStatus.EXPIRED
+                && status != SurveyStatus.CANCELED;
+    }
 }
