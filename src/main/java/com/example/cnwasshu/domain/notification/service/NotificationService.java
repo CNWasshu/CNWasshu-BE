@@ -12,6 +12,7 @@ import com.example.cnwasshu.domain.notification.dto.response.NotificationListRes
 import com.example.cnwasshu.domain.notification.dto.response.NotificationSettingResponse;
 import com.example.cnwasshu.domain.notification.entity.Notification;
 import com.example.cnwasshu.domain.notification.entity.NotificationSetting;
+import com.example.cnwasshu.domain.notification.entity.ReservationReminderType;
 import com.example.cnwasshu.domain.notification.repository.NotificationRepository;
 import com.example.cnwasshu.domain.notification.repository.NotificationSettingRepository;
 import com.example.cnwasshu.domain.review.entity.SurveyType;
@@ -102,6 +103,63 @@ public class NotificationService {
                 title,
                 "잠시 시간을 내어 여행 경험을 알려주세요."
         ));
+    }
+
+    public boolean createReservationReminderNotification(
+            Long userId,
+            Long reservationId,
+            String activityTitle,
+            ReservationReminderType reminderType
+    ) {
+        NotificationSetting setting =
+                getOrCreateSetting(userId);
+
+        if (!isReservationReminderEnabled(
+                setting,
+                reminderType
+        )) {
+            return false;
+        }
+
+        if (notificationRepository
+                .existsByReservationIdAndTitle(
+                        reservationId,
+                        reminderType.getTitle()
+                )) {
+            return false;
+        }
+
+        notificationRepository.save(
+                Notification.forReservation(
+                        userId,
+                        reservationId,
+                        reminderType.getTitle(),
+                        reminderType.createContent(
+                                activityTitle
+                        )
+                )
+        );
+
+        return true;
+    }
+
+    private boolean isReservationReminderEnabled(
+            NotificationSetting setting,
+            ReservationReminderType reminderType
+    ) {
+        return switch (reminderType) {
+            case DAY_BEFORE ->
+                    setting.isReservationDayBefore();
+
+            case THREE_HOURS_BEFORE ->
+                    setting.isReservation3hBefore();
+
+            case ONE_HOUR_BEFORE ->
+                    setting.isReservation1hBefore();
+
+            case THIRTY_MINUTES_BEFORE ->
+                    setting.isReservation30mBefore();
+        };
     }
 
     private NotificationSetting getOrCreateSetting(Long userId) {
