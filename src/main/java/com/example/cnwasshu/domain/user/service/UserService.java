@@ -41,9 +41,7 @@ public class UserService {
             nickname = request.nickname();
         }
 
-        String profileImage = request.profileImage() != null ? request.profileImage() : user.getProfileImage();
-
-        user.updateProfile(nickname, user.getEmail(), profileImage);
+        user.updateProfile(nickname, user.getEmail());
         return UserSummary.from(user);
     }
 

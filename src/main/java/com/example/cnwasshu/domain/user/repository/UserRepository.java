@@ -9,4 +9,6 @@ import com.example.cnwasshu.domain.user.entity.User;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByKakaoId(String kakaoId);
+
+    Optional<User> findByEmail(String email);
 }

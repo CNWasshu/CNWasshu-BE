@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.cnwasshu.common.security.CustomUserPrincipal;
 import com.example.cnwasshu.domain.user.dto.request.KakaoLoginRequest;
+import com.example.cnwasshu.domain.user.dto.request.LoginRequest;
+import com.example.cnwasshu.domain.user.dto.request.SignupRequest;
 import com.example.cnwasshu.domain.user.dto.request.TokenRefreshRequest;
 import com.example.cnwasshu.domain.user.dto.response.TokenResponse;
 import com.example.cnwasshu.domain.user.service.AuthService;
@@ -26,6 +28,16 @@ public class AuthController {
     @PostMapping("/kakao")
     public ResponseEntity<TokenResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
         return ResponseEntity.ok(authService.loginWithKakao(request));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<TokenResponse> signup(@Valid @RequestBody SignupRequest request) {
+        return ResponseEntity.ok(authService.signup(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/refresh")

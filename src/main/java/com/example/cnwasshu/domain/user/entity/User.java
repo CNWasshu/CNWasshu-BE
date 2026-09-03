@@ -32,23 +32,35 @@ public class User extends BaseSoftDeleteEntity {
     @Column(name = "email", length = 100)
     private String email;
 
-    @Column(name = "profile_image", length = 500)
-    private String profileImage;
+    // 카카오 로그인 사용자는 null이다. 항상 BCrypt로 인코딩된 값만 저장한다.
+    @Column(name = "password", length = 100)
+    private String password;
 
-    private User(String kakaoId, String nickname, String email, String profileImage) {
+    private User(String kakaoId, String nickname, String email, String password) {
         this.kakaoId = kakaoId;
         this.nickname = nickname;
         this.email = email;
-        this.profileImage = profileImage;
+        this.password = password;
     }
 
-    public static User ofKakao(String kakaoId, String nickname, String email, String profileImage) {
-        return new User(kakaoId, nickname, email, profileImage);
+    public static User ofKakao(String kakaoId, String nickname, String email) {
+        return new User(kakaoId, nickname, email, null);
     }
 
-    public void updateProfile(String nickname, String email, String profileImage) {
+    public static User ofLocal(String email, String nickname, String encodedPassword) {
+        return new User(null, nickname, email, encodedPassword);
+    }
+
+    public boolean hasPassword() {
+        return password != null;
+    }
+
+    public LoginType getLoginType() {
+        return kakaoId != null ? LoginType.KAKAO : LoginType.EMAIL;
+    }
+
+    public void updateProfile(String nickname, String email) {
         this.nickname = nickname;
         this.email = email;
-        this.profileImage = profileImage;
     }
 }
