@@ -23,6 +23,8 @@ import com.example.cnwasshu.domain.review.dto.request.ActivitySurveyDraftRequest
 import com.example.cnwasshu.domain.review.dto.request.SurveyDraftRequest;
 import com.example.cnwasshu.domain.review.entity.ActivitySurvey;
 import com.example.cnwasshu.domain.review.entity.CourseSurvey;
+import com.example.cnwasshu.domain.review.entity.CourseUsageStatus;
+import com.example.cnwasshu.domain.review.entity.SurveyType;
 import com.example.cnwasshu.domain.review.repository.ActivitySurveyRepository;
 import com.example.cnwasshu.domain.review.repository.CourseSurveyRepository;
 
@@ -81,6 +83,40 @@ public class SurveyService {
         }
 
         return getSurvey(userId, surveyId);
+    }
+
+    @Transactional
+    public SurveyDetailResponse submit(Long userId, Long surveyId) {
+        CourseSurvey survey = courseSurveyRepository.findByIdAndUserId(surveyId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SURVEY_NOT_FOUND));
+
+        if (!survey.isEditable()) {
+            throw new BusinessException(ErrorCode.SURVEY_NOT_EDITABLE);
+        }
+
+        validateForSubmission(survey);
+        survey.complete();
+
+        return getSurvey(userId, surveyId);
+    }
+
+    private void validateForSubmission(CourseSurvey survey) {
+        if (survey.getSurveyType() == SurveyType.USER_COURSE) {
+            if (survey.getCoursePace() == null) {
+                throw new BusinessException(ErrorCode.INVALID_SURVEY_RESPONSE);
+            }
+            return;
+        }
+
+        CourseUsageStatus usageStatus = survey.getCourseUsageStatus();
+        if (usageStatus == null) {
+            throw new BusinessException(ErrorCode.INVALID_SURVEY_RESPONSE);
+        }
+
+        if (usageStatus != CourseUsageStatus.NOT_USED
+                && (survey.getOverallScore() == null || survey.getCoursePace() == null)) {
+            throw new BusinessException(ErrorCode.INVALID_SURVEY_RESPONSE);
+        }
     }
 
     private void updateActivityDraft(Long surveyId, ActivitySurveyDraftRequest request) {

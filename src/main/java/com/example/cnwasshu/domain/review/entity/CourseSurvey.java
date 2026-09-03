@@ -145,4 +145,11 @@ public class CourseSurvey extends BaseTimeEntity {
                 && status != SurveyStatus.EXPIRED
                 && status != SurveyStatus.CANCELED;
     }
+
+    public void complete() {
+        this.status = courseUsageStatus == CourseUsageStatus.NOT_USED
+                ? SurveyStatus.NOT_USED
+                : SurveyStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
 }

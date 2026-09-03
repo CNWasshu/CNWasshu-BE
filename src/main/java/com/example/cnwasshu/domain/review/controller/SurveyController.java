@@ -5,6 +5,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,5 +40,13 @@ public class SurveyController {
             @Valid @RequestBody SurveyDraftRequest request
     ) {
         return ResponseEntity.ok(surveyService.saveDraft(principal.userId(), surveyId, request));
+    }
+
+    @PostMapping("/{surveyId}/submit")
+    public ResponseEntity<SurveyDetailResponse> submit(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long surveyId
+    ) {
+        return ResponseEntity.ok(surveyService.submit(principal.userId(), surveyId));
     }
 }

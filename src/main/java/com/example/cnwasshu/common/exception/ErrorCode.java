@@ -40,6 +40,7 @@ public enum ErrorCode {
     SURVEY_NOT_FOUND(HttpStatus.NOT_FOUND, "만족도 조사를 찾을 수 없습니다."),
     ACTIVITY_SURVEY_NOT_FOUND(HttpStatus.NOT_FOUND, "체험 만족도 조사 항목을 찾을 수 없습니다."),
     SURVEY_NOT_EDITABLE(HttpStatus.CONFLICT, "수정할 수 없는 상태의 만족도 조사입니다."),
+    INVALID_SURVEY_RESPONSE(HttpStatus.BAD_REQUEST, "필수 만족도 조사 항목을 확인해 주세요."),
 
     STAMP_ACTIVITY_NOT_FOUND(HttpStatus.NOT_FOUND, "QR 코드에 해당하는 체험을 찾을 수 없습니다."),
     STAMP_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 획득한 스탬프입니다.");
