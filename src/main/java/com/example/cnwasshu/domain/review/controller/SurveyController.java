@@ -49,4 +49,12 @@ public class SurveyController {
     ) {
         return ResponseEntity.ok(surveyService.submit(principal.userId(), surveyId));
     }
+
+    @PatchMapping("/{surveyId}/snooze")
+    public ResponseEntity<SurveyDetailResponse> snooze(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @PathVariable Long surveyId
+    ) {
+        return ResponseEntity.ok(surveyService.snooze(principal.userId(), surveyId));
+    }
 }

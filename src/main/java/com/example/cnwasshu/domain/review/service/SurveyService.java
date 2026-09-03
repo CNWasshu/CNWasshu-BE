@@ -1,5 +1,8 @@
 package com.example.cnwasshu.domain.review.service;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.List;
 import java.util.function.Function;
@@ -24,6 +27,7 @@ import com.example.cnwasshu.domain.review.dto.request.SurveyDraftRequest;
 import com.example.cnwasshu.domain.review.entity.ActivitySurvey;
 import com.example.cnwasshu.domain.review.entity.CourseSurvey;
 import com.example.cnwasshu.domain.review.entity.CourseUsageStatus;
+import com.example.cnwasshu.domain.review.entity.SurveyStatus;
 import com.example.cnwasshu.domain.review.entity.SurveyType;
 import com.example.cnwasshu.domain.review.repository.ActivitySurveyRepository;
 import com.example.cnwasshu.domain.review.repository.CourseSurveyRepository;
@@ -34,6 +38,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class SurveyService {
+
+    private static final ZoneId KOREA_ZONE_ID = ZoneId.of("Asia/Seoul");
+    private static final LocalTime REMINDER_TIME = LocalTime.of(10, 0);
 
     private final CourseSurveyRepository courseSurveyRepository;
     private final ActivitySurveyRepository activitySurveyRepository;
@@ -96,6 +103,27 @@ public class SurveyService {
 
         validateForSubmission(survey);
         survey.complete();
+
+        return getSurvey(userId, surveyId);
+    }
+
+    @Transactional
+    public SurveyDetailResponse snooze(Long userId, Long surveyId) {
+        CourseSurvey survey = courseSurveyRepository.findByIdAndUserId(surveyId, userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SURVEY_NOT_FOUND));
+
+        if (!survey.isEditable()) {
+            throw new BusinessException(ErrorCode.SURVEY_NOT_EDITABLE);
+        }
+        if (survey.getStatus() == SurveyStatus.SNOOZED) {
+            throw new BusinessException(ErrorCode.SURVEY_ALREADY_SNOOZED);
+        }
+
+        LocalDateTime nextScheduledAt = LocalDateTime.now(KOREA_ZONE_ID)
+                .toLocalDate()
+                .plusDays(1)
+                .atTime(REMINDER_TIME);
+        survey.snooze(nextScheduledAt);
 
         return getSurvey(userId, surveyId);
     }

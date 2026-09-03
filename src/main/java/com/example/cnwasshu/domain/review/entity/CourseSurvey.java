@@ -152,4 +152,9 @@ public class CourseSurvey extends BaseTimeEntity {
                 : SurveyStatus.COMPLETED;
         this.completedAt = LocalDateTime.now();
     }
+
+    public void snooze(LocalDateTime nextScheduledAt) {
+        this.status = SurveyStatus.SNOOZED;
+        this.scheduledAt = nextScheduledAt;
+    }
 }
