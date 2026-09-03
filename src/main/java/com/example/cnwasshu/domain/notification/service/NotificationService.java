@@ -83,6 +83,27 @@ public class NotificationService {
         return true;
     }
 
+    public boolean isSurveyNotificationEnabled(Long userId) {
+        return getOrCreateSetting(userId).isSurveyEnabled();
+    }
+
+    public void createSurveyReminderNotification(
+            Long userId,
+            Long courseSurveyId,
+            SurveyType surveyType
+    ) {
+        String title = surveyType == SurveyType.AI_COURSE
+                ? "AI 추천 코스 만족도 조사를 잊지 않으셨나요?"
+                : "여행 만족도 조사를 잊지 않으셨나요?";
+
+        notificationRepository.save(Notification.forSurvey(
+                userId,
+                courseSurveyId,
+                title,
+                "잠시 시간을 내어 여행 경험을 알려주세요."
+        ));
+    }
+
     private NotificationSetting getOrCreateSetting(Long userId) {
         return notificationSettingRepository.findByUserId(userId)
                 .orElseGet(() -> notificationSettingRepository.save(NotificationSetting.createDefault(userId)));

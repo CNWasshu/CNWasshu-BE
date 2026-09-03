@@ -173,4 +173,24 @@ public class CourseSurvey extends BaseTimeEntity {
             this.status = SurveyStatus.CANCELED;
         }
     }
+
+    public void markSent(LocalDateTime sentAt, LocalDateTime reminderAt) {
+        this.status = SurveyStatus.SENT;
+        if (this.sentAt == null) {
+            this.sentAt = sentAt;
+        }
+        this.scheduledAt = reminderAt;
+    }
+
+    public void markReminderSent(LocalDateTime expiresAt) {
+        this.status = SurveyStatus.SENT;
+        this.reminderCount = 1;
+        this.scheduledAt = expiresAt;
+    }
+
+    public void expire() {
+        if (isEditable()) {
+            this.status = SurveyStatus.EXPIRED;
+        }
+    }
 }
