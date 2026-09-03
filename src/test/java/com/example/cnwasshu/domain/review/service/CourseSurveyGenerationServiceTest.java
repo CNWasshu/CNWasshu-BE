@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,8 @@ import com.example.cnwasshu.domain.reservation.repository.ReservationRepository;
 import com.example.cnwasshu.domain.review.entity.ActivitySurvey;
 import com.example.cnwasshu.domain.review.entity.CourseSurvey;
 import com.example.cnwasshu.domain.review.entity.SurveyType;
+import com.example.cnwasshu.domain.review.entity.SurveyStatus;
+import com.example.cnwasshu.domain.review.entity.CoursePace;
 import com.example.cnwasshu.domain.review.entity.VisitEvidenceType;
 import com.example.cnwasshu.domain.review.entity.VisitStatus;
 import com.example.cnwasshu.domain.review.repository.ActivitySurveyRepository;
@@ -153,6 +156,21 @@ class CourseSurveyGenerationServiceTest {
         assertThat(captor.getValue().getVisitEvidenceType()).isEqualTo(VisitEvidenceType.STAMP);
     }
 
+    @Test
+    void 코스가_삭제되면_미완료_설문만_취소한다() {
+        CourseSurvey scheduled = userCourseSurvey();
+        CourseSurvey completed = userCourseSurvey();
+        completed.updateDraft(null, null, CoursePace.APPROPRIATE, null, null, null);
+        completed.complete();
+        when(courseSurveyRepository.findAllByCourseId(COURSE_ID))
+                .thenReturn(List.of(scheduled, completed));
+
+        generationService.cancelForCourse(COURSE_ID);
+
+        assertThat(scheduled.getStatus()).isEqualTo(SurveyStatus.CANCELED);
+        assertThat(completed.getStatus()).isEqualTo(SurveyStatus.COMPLETED);
+    }
+
     private void stubNewCourseSurvey() {
         when(courseSurveyRepository.findByUserIdAndCourseIdAndCourseDateAndSurveyType(
                 any(), any(), any(), any()
@@ -162,6 +180,16 @@ class CourseSurveyGenerationServiceTest {
             ReflectionTestUtils.setField(survey, "id", 500L);
             return survey;
         });
+    }
+
+    private CourseSurvey userCourseSurvey() {
+        return CourseSurvey.schedule(
+                USER_ID,
+                COURSE_ID,
+                COURSE_DATE,
+                SurveyType.USER_COURSE,
+                SCHEDULED_AT
+        );
     }
 
     private Course course(CourseType courseType) {

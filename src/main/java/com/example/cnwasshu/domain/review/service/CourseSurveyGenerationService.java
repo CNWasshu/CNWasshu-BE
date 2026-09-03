@@ -52,6 +52,11 @@ public class CourseSurveyGenerationService {
         itemsByDay.forEach((dayNo, dayItems) -> generateForDay(course, dayNo, dayItems));
     }
 
+    public void cancelForCourse(Long courseId) {
+        courseSurveyRepository.findAllByCourseId(courseId)
+                .forEach(CourseSurvey::cancelIfIncomplete);
+    }
+
     private void generateForDay(Course course, Integer dayNo, List<CourseItem> dayItems) {
         List<CourseItem> activityItems = dayItems.stream()
                 .filter(item -> item.getActivityId() != null)

@@ -163,4 +163,14 @@ public class CourseSurvey extends BaseTimeEntity {
             this.scheduledAt = nextScheduledAt;
         }
     }
+
+    public void cancelIfIncomplete() {
+        if (status == SurveyStatus.SCHEDULED
+                || status == SurveyStatus.SENT
+                || status == SurveyStatus.OPENED
+                || status == SurveyStatus.IN_PROGRESS
+                || status == SurveyStatus.SNOOZED) {
+            this.status = SurveyStatus.CANCELED;
+        }
+    }
 }

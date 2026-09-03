@@ -84,6 +84,7 @@ public class CourseService {
     public void deleteCourse(Long userId, Long courseId) {
         Course course = findOwnedCourse(userId, courseId);
         course.softDelete();
+        courseSurveyGenerationService.cancelForCourse(courseId);
     }
 
     private Course findOwnedCourse(Long userId, Long courseId) {

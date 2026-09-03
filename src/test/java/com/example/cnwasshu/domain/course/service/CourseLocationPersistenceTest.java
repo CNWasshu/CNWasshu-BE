@@ -3,6 +3,7 @@ package com.example.cnwasshu.domain.course.service;
 import com.example.cnwasshu.domain.course.dto.request.CourseItemRequest;
 import com.example.cnwasshu.domain.course.dto.request.CourseSaveRequest;
 import com.example.cnwasshu.domain.course.entity.Course;
+import com.example.cnwasshu.domain.course.entity.CourseType;
 import com.example.cnwasshu.domain.course.repository.CourseRepository;
 import com.example.cnwasshu.domain.review.service.CourseSurveyGenerationService;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,26 @@ class CourseLocationPersistenceTest {
                 1L, request(new BigDecimal("36.4623000"), null)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("둘 다");
+    }
+
+    @Test
+    void cancelsIncompleteSurveysWhenCourseIsDeleted() {
+        Course course = Course.builder()
+                .userId(1L)
+                .courseName("삭제할 코스")
+                .courseType(CourseType.USER)
+                .peopleCount(2)
+                .withChild(false)
+                .startDate(LocalDate.of(2026, 9, 10))
+                .endDate(LocalDate.of(2026, 9, 10))
+                .build();
+        when(courseRepository.findByIdAndUserIdAndDeletedAtIsNull(10L, 1L))
+                .thenReturn(Optional.of(course));
+
+        service.deleteCourse(1L, 10L);
+
+        assertThat(course.isDeleted()).isTrue();
+        verify(courseSurveyGenerationService).cancelForCourse(10L);
     }
 
     private Course savedCourse;
