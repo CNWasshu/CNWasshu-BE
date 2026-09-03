@@ -4,6 +4,7 @@ import com.example.cnwasshu.domain.course.entity.Course;
 import com.example.cnwasshu.domain.course.entity.CourseItem;
 import com.example.cnwasshu.domain.course.entity.CourseType;
 import com.example.cnwasshu.domain.course.repository.CourseRepository;
+import com.example.cnwasshu.domain.review.service.CourseSurveyGenerationService;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableSaveRequest;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableScheduleRequest;
 import com.example.cnwasshu.domain.timetable.dto.response.TimetableDetailResponse;
@@ -27,6 +28,7 @@ public class TimetableService {
     private final CourseRepository courseRepository;
     private final TimetableValidator timetableValidator;
     private final SavedActivityQueryPort savedActivityQueryPort;
+    private final CourseSurveyGenerationService courseSurveyGenerationService;
 
     public SavedActivityListResponse getSavedActivities(Long userId) {
         return SavedActivityListResponse.from(savedActivityQueryPort.findSavedActivities(userId));
@@ -49,6 +51,7 @@ public class TimetableService {
         toCourseItems(request, referenceData).forEach(course::addItem);
 
         Course savedCourse = courseRepository.saveAndFlush(course);
+        courseSurveyGenerationService.generateFor(savedCourse);
         return TimetableDetailResponse.from(savedCourse);
     }
 

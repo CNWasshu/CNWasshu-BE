@@ -3,6 +3,7 @@ package com.example.cnwasshu.domain.timetable.service;
 import com.example.cnwasshu.domain.course.entity.Course;
 import com.example.cnwasshu.domain.course.entity.CourseItem;
 import com.example.cnwasshu.domain.course.repository.CourseRepository;
+import com.example.cnwasshu.domain.review.service.CourseSurveyGenerationService;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableDayRequest;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableSaveRequest;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableScheduleRequest;
@@ -39,6 +40,9 @@ class TimetableServiceTest {
     @Mock
     private SavedActivityQueryPort savedActivityQueryPort;
 
+    @Mock
+    private CourseSurveyGenerationService courseSurveyGenerationService;
+
     @InjectMocks
     private TimetableService timetableService;
 
@@ -63,6 +67,7 @@ class TimetableServiceTest {
         assertThat(savedCourse.getCourseName()).isEqualTo("충남 당일치기");
         assertThat(savedCourse.getPeopleCount()).isEqualTo(1);
         assertThat(savedCourse.getWithChild()).isFalse();
+        verify(courseSurveyGenerationService).generateFor(savedCourse);
     }
 
     @Test

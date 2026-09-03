@@ -4,6 +4,7 @@ import com.example.cnwasshu.domain.course.dto.request.CourseItemRequest;
 import com.example.cnwasshu.domain.course.dto.request.CourseSaveRequest;
 import com.example.cnwasshu.domain.course.entity.Course;
 import com.example.cnwasshu.domain.course.repository.CourseRepository;
+import com.example.cnwasshu.domain.review.service.CourseSurveyGenerationService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -17,15 +18,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 class CourseLocationPersistenceTest {
 
     private final CourseRepository courseRepository = mock(CourseRepository.class);
-    private final CourseService service = new CourseService(courseRepository);
+    private final CourseSurveyGenerationService courseSurveyGenerationService =
+            mock(CourseSurveyGenerationService.class);
+    private final CourseService service = new CourseService(courseRepository, courseSurveyGenerationService);
 
     @Test
     void savesAndReturnsAiCourseLocationWithoutChangingValues() {
-        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(courseRepository.saveAndFlush(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
         CourseSaveRequest request = request(new BigDecimal("36.4623000"), new BigDecimal("127.1277000"));
 
         var saved = service.saveAiCourse(1L, request);
@@ -37,11 +41,12 @@ class CourseLocationPersistenceTest {
         assertThat(saved.items().get(0).address()).isEqualTo("충남 공주시 웅진로 280");
         assertThat(loaded.items().get(0).latitude()).isEqualByComparingTo("36.4623000");
         assertThat(loaded.items().get(0).longitude()).isEqualByComparingTo("127.1277000");
+        verify(courseSurveyGenerationService).generateFor(savedEntity);
     }
 
     @Test
     void allowsUserCourseWithoutLocation() {
-        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(courseRepository.saveAndFlush(any(Course.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         var saved = service.saveManualCourse(1L, request(null, null));
 
@@ -64,7 +69,7 @@ class CourseLocationPersistenceTest {
     }
 
     private CourseSaveRequest request(BigDecimal latitude, BigDecimal longitude) {
-        when(courseRepository.save(any(Course.class))).thenAnswer(invocation -> {
+        when(courseRepository.saveAndFlush(any(Course.class))).thenAnswer(invocation -> {
             savedCourse = invocation.getArgument(0);
             return savedCourse;
         });
