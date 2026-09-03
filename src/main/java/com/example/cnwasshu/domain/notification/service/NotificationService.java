@@ -14,6 +14,7 @@ import com.example.cnwasshu.domain.notification.entity.Notification;
 import com.example.cnwasshu.domain.notification.entity.NotificationSetting;
 import com.example.cnwasshu.domain.notification.repository.NotificationRepository;
 import com.example.cnwasshu.domain.notification.repository.NotificationSettingRepository;
+import com.example.cnwasshu.domain.review.entity.SurveyType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,10 +50,58 @@ public class NotificationService {
                 resolve(request.reservationDayBefore(), setting.isReservationDayBefore()),
                 resolve(request.reservation3hBefore(), setting.isReservation3hBefore()),
                 resolve(request.reservation1hBefore(), setting.isReservation1hBefore()),
-                resolve(request.reservation30mBefore(), setting.isReservation30mBefore())
+                resolve(request.reservation30mBefore(), setting.isReservation30mBefore()),
+                resolve(request.surveyEnabled(), setting.isSurveyEnabled())
         );
 
         return NotificationSettingResponse.from(setting);
+    }
+
+    public boolean createSurveyNotification(
+            Long userId,
+            Long courseSurveyId,
+            SurveyType surveyType
+    ) {
+        NotificationSetting setting = getOrCreateSetting(userId);
+        if (!setting.isSurveyEnabled() || notificationRepository.existsByCourseSurveyId(courseSurveyId)) {
+            return false;
+        }
+
+        String title = surveyType == SurveyType.AI_COURSE
+                ? "AI가 추천한 오늘의 코스는 어떠셨나요?"
+                : "오늘 충남 여행은 어떠셨나요?";
+        String content = surveyType == SurveyType.AI_COURSE
+                ? "일정과 이동이 적절했는지 알려주세요."
+                : "방문한 체험을 1분 안에 평가해 주세요.";
+
+        notificationRepository.save(Notification.forSurvey(
+                userId,
+                courseSurveyId,
+                title,
+                content
+        ));
+        return true;
+    }
+
+    public boolean isSurveyNotificationEnabled(Long userId) {
+        return getOrCreateSetting(userId).isSurveyEnabled();
+    }
+
+    public void createSurveyReminderNotification(
+            Long userId,
+            Long courseSurveyId,
+            SurveyType surveyType
+    ) {
+        String title = surveyType == SurveyType.AI_COURSE
+                ? "AI 추천 코스 만족도 조사를 잊지 않으셨나요?"
+                : "여행 만족도 조사를 잊지 않으셨나요?";
+
+        notificationRepository.save(Notification.forSurvey(
+                userId,
+                courseSurveyId,
+                title,
+                "잠시 시간을 내어 여행 경험을 알려주세요."
+        ));
     }
 
     private NotificationSetting getOrCreateSetting(Long userId) {

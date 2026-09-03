@@ -10,6 +10,7 @@ import com.example.cnwasshu.domain.course.entity.CourseType;
 import com.example.cnwasshu.domain.course.exception.CourseNotFoundException;
 import com.example.cnwasshu.domain.course.exception.CourseTimeOverlapException;
 import com.example.cnwasshu.domain.course.repository.CourseRepository;
+import com.example.cnwasshu.domain.review.service.CourseSurveyGenerationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class CourseService {
     private static final BigDecimal MAX_LONGITUDE = new BigDecimal("180");
 
     private final CourseRepository courseRepository;
+    private final CourseSurveyGenerationService courseSurveyGenerationService;
 
     public List<CourseSummaryResponse> getMyCourses(Long userId) {
         return courseRepository.findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId)
@@ -67,7 +69,8 @@ public class CourseService {
 
         request.items().forEach(itemRequest -> course.addItem(toEntity(itemRequest)));
 
-        Course saved = courseRepository.save(course);
+        Course saved = courseRepository.saveAndFlush(course);
+        courseSurveyGenerationService.generateFor(saved);
         return CourseDetailResponse.from(saved);
     }
 
@@ -81,6 +84,7 @@ public class CourseService {
     public void deleteCourse(Long userId, Long courseId) {
         Course course = findOwnedCourse(userId, courseId);
         course.softDelete();
+        courseSurveyGenerationService.cancelForCourse(courseId);
     }
 
     private Course findOwnedCourse(Long userId, Long courseId) {

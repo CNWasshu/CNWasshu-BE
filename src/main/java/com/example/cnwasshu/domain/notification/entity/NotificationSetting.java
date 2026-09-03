@@ -41,28 +41,33 @@ public class NotificationSetting extends BaseTimeEntity {
     @Column(name = "reservation_30m_before", nullable = false)
     private boolean reservation30mBefore;
 
+    @Column(name = "survey_enabled", nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean surveyEnabled;
+
     private NotificationSetting(Long userId, boolean courseDayBefore, boolean reservationDayBefore,
                                  boolean reservation3hBefore, boolean reservation1hBefore,
-                                 boolean reservation30mBefore) {
+                                 boolean reservation30mBefore, boolean surveyEnabled) {
         this.userId = userId;
         this.courseDayBefore = courseDayBefore;
         this.reservationDayBefore = reservationDayBefore;
         this.reservation3hBefore = reservation3hBefore;
         this.reservation1hBefore = reservation1hBefore;
         this.reservation30mBefore = reservation30mBefore;
+        this.surveyEnabled = surveyEnabled;
     }
 
     public static NotificationSetting createDefault(Long userId) {
-        return new NotificationSetting(userId, true, true, true, true, true);
+        return new NotificationSetting(userId, true, true, true, true, true, true);
     }
 
     public void update(boolean courseDayBefore, boolean reservationDayBefore,
                         boolean reservation3hBefore, boolean reservation1hBefore,
-                        boolean reservation30mBefore) {
+                        boolean reservation30mBefore, boolean surveyEnabled) {
         this.courseDayBefore = courseDayBefore;
         this.reservationDayBefore = reservationDayBefore;
         this.reservation3hBefore = reservation3hBefore;
         this.reservation1hBefore = reservation1hBefore;
         this.reservation30mBefore = reservation30mBefore;
+        this.surveyEnabled = surveyEnabled;
     }
 }

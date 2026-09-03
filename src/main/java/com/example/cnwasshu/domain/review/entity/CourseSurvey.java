@@ -157,4 +157,40 @@ public class CourseSurvey extends BaseTimeEntity {
         this.status = SurveyStatus.SNOOZED;
         this.scheduledAt = nextScheduledAt;
     }
+
+    public void reschedule(LocalDateTime nextScheduledAt) {
+        if (status == SurveyStatus.SCHEDULED) {
+            this.scheduledAt = nextScheduledAt;
+        }
+    }
+
+    public void cancelIfIncomplete() {
+        if (status == SurveyStatus.SCHEDULED
+                || status == SurveyStatus.SENT
+                || status == SurveyStatus.OPENED
+                || status == SurveyStatus.IN_PROGRESS
+                || status == SurveyStatus.SNOOZED) {
+            this.status = SurveyStatus.CANCELED;
+        }
+    }
+
+    public void markSent(LocalDateTime sentAt, LocalDateTime reminderAt) {
+        this.status = SurveyStatus.SENT;
+        if (this.sentAt == null) {
+            this.sentAt = sentAt;
+        }
+        this.scheduledAt = reminderAt;
+    }
+
+    public void markReminderSent(LocalDateTime expiresAt) {
+        this.status = SurveyStatus.SENT;
+        this.reminderCount = 1;
+        this.scheduledAt = expiresAt;
+    }
+
+    public void expire() {
+        if (isEditable()) {
+            this.status = SurveyStatus.EXPIRED;
+        }
+    }
 }
