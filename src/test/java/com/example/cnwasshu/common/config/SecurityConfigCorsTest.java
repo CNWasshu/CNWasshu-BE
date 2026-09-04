@@ -21,18 +21,24 @@ class SecurityConfigCorsTest {
     private MockMvc mockMvc;
 
     @Test
-    void allowsExpoWebPreflightWithUserIdHeader() throws Exception {
+    void allowsExpoWebPreflightWithAuthorizationHeader() throws Exception {
         mockMvc.perform(options("/api/courses")
                         .header(HttpHeaders.ORIGIN, "http://localhost:8081")
                         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET")
-                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "X-USER-ID, Content-Type"))
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "Authorization, Content-Type"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
                         "http://localhost:8081"))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
                         containsString("GET")))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
-                        containsString("X-USER-ID")));
+                        containsString("Authorization")));
+    }
+
+    @Test
+    void requiresAuthenticationForCourses() throws Exception {
+        mockMvc.perform(get("/api/courses"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
