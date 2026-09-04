@@ -3,6 +3,7 @@ package com.example.cnwasshu.domain.course.service;
 import com.example.cnwasshu.domain.course.dto.request.CourseItemRequest;
 import com.example.cnwasshu.domain.course.dto.request.CourseSaveRequest;
 import com.example.cnwasshu.domain.course.entity.Course;
+import com.example.cnwasshu.domain.course.entity.CourseItem;
 import com.example.cnwasshu.domain.course.entity.CourseType;
 import com.example.cnwasshu.domain.course.repository.CourseRepository;
 import com.example.cnwasshu.domain.review.service.CourseSurveyGenerationService;
@@ -20,13 +21,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 class CourseLocationPersistenceTest {
 
     private final CourseRepository courseRepository = mock(CourseRepository.class);
     private final CourseSurveyGenerationService courseSurveyGenerationService =
             mock(CourseSurveyGenerationService.class);
-    private final CourseService service = new CourseService(courseRepository, courseSurveyGenerationService);
+    private final KakaoMobilityDirectionsClient directionsClient = mock(KakaoMobilityDirectionsClient.class);
+    private final CourseService service = new CourseService(
+            courseRepository, courseSurveyGenerationService, directionsClient);
 
     @Test
     void savesAndReturnsAiCourseLocationWithoutChangingValues() {
@@ -83,6 +87,39 @@ class CourseLocationPersistenceTest {
         verify(courseSurveyGenerationService).cancelForCourse(10L);
     }
 
+    @Test
+    void addsCarRouteOnlyBetweenConsecutiveItemsOnTheSameDay() {
+        Course course = Course.builder()
+                .userId(1L)
+                .courseName("이동 코스")
+                .courseType(CourseType.USER)
+                .peopleCount(2)
+                .withChild(false)
+                .startDate(LocalDate.of(2026, 9, 10))
+                .endDate(LocalDate.of(2026, 9, 11))
+                .build();
+        course.addItem(item("첫 장소", 1, 1, "36.1", "127.1"));
+        course.addItem(item("둘째 장소", 1, 2, "36.2", "127.2"));
+        course.addItem(item("다음 날 장소", 2, 1, "36.3", "127.3"));
+        when(courseRepository.findByIdAndUserIdAndDeletedAtIsNull(10L, 1L))
+                .thenReturn(Optional.of(course));
+        when(directionsClient.getCarRoute(
+                new BigDecimal("36.1"), new BigDecimal("127.1"),
+                new BigDecimal("36.2"), new BigDecimal("127.2")))
+                .thenReturn(Optional.of(new KakaoMobilityDirectionsClient.RouteInfo(12_000, 1_080)));
+
+        var detail = service.getCourseDetail(1L, 10L);
+
+        assertThat(detail.items().get(0).distanceMeters()).isEqualTo(12_000);
+        assertThat(detail.items().get(0).travelTimeSeconds()).isEqualTo(1_080);
+        assertThat(detail.items().get(1).distanceMeters()).isNull();
+        assertThat(detail.items().get(2).distanceMeters()).isNull();
+        verify(directionsClient).getCarRoute(
+                new BigDecimal("36.1"), new BigDecimal("127.1"),
+                new BigDecimal("36.2"), new BigDecimal("127.2"));
+        verifyNoMoreInteractions(directionsClient);
+    }
+
     private Course savedCourse;
 
     private Course captureSavedCourse() {
@@ -103,5 +140,17 @@ class CourseLocationPersistenceTest {
                 "공주 AI 코스", 2, false,
                 LocalDate.of(2026, 9, 10), LocalDate.of(2026, 9, 10), List.of(item)
         );
+    }
+
+    private CourseItem item(String title, int dayNo, int sortOrder, String latitude, String longitude) {
+        return CourseItem.builder()
+                .title(title)
+                .dayNo(dayNo)
+                .startTime(LocalTime.of(9 + sortOrder, 0))
+                .endTime(LocalTime.of(10 + sortOrder, 0))
+                .sortOrder(sortOrder)
+                .latitude(new BigDecimal(latitude))
+                .longitude(new BigDecimal(longitude))
+                .build();
     }
 }
