@@ -75,4 +75,16 @@ public class User extends BaseSoftDeleteEntity {
         this.nickname = nickname;
         this.email = email;
     }
+
+    public void completeOnboarding(OnboardingStatus status) {
+        if (onboardingStatus != OnboardingStatus.NOT_STARTED) {
+            return;
+        }
+        if (status == OnboardingStatus.NOT_STARTED) {
+            throw new IllegalArgumentException("완료 상태는 NOT_STARTED일 수 없습니다.");
+        }
+
+        onboardingStatus = status;
+        onboardingCompletedAt = LocalDateTime.now();
+    }
 }
