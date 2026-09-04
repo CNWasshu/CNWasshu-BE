@@ -32,8 +32,6 @@ public class SecurityConfig {
             "/api/auth/signup",
             "/api/auth/login",
             "/api/auth/refresh",
-            // TODO: course 도메인이 JWT 인증으로 전환되면 제거. 현재 X-USER-ID 헤더로 임시 인증 중 (CourseController 참고)
-            "/api/courses/**",
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -75,7 +73,6 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
-                "X-USER-ID",
                 // 로컬 개발 중 폰 테스트용 ngrok 터널의 무료 티어 경고 페이지를 우회하기 위한 헤더.
                 // 프론트가 모든 요청에 붙여 보내므로 CORS 허용 헤더에도 추가해야 함.
                 "ngrok-skip-browser-warning"
