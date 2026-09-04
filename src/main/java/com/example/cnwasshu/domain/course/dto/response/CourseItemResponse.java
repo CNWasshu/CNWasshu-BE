@@ -9,6 +9,7 @@ import java.util.Comparator;
 public record CourseItemResponse(
         Long id,
         Long activityId,
+        Long restaurantId,
         Long reservationId,
         String title,
         Integer dayNo,
@@ -31,6 +32,7 @@ public record CourseItemResponse(
         return new CourseItemResponse(
                 item.getId(),
                 item.getActivityId(),
+                item.getRestaurantId(),
                 item.getReservationId(),
                 item.getTitle(),
                 item.getDayNo(),
@@ -46,18 +48,9 @@ public record CourseItemResponse(
         );
     }
 
-    public CourseItemResponse(
-            Long id, Long activityId, Long reservationId, String title, Integer dayNo,
-            LocalTime startTime, LocalTime endTime, Integer sortOrder, String address,
-            BigDecimal latitude, BigDecimal longitude, String memo
-    ) {
-        this(id, activityId, reservationId, title, dayNo, startTime, endTime, sortOrder,
-                address, latitude, longitude, memo, null, null);
-    }
-
     public CourseItemResponse withRouteToNext(Integer distanceMeters, Integer travelTimeSeconds) {
         return new CourseItemResponse(
-                id, activityId, reservationId, title, dayNo, startTime, endTime, sortOrder,
+                id, activityId, restaurantId, reservationId, title, dayNo, startTime, endTime, sortOrder,
                 address, latitude, longitude, memo, distanceMeters, travelTimeSeconds
         );
     }
