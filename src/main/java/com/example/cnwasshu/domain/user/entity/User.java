@@ -4,13 +4,17 @@ import com.example.cnwasshu.common.entity.BaseSoftDeleteEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Entity
@@ -35,6 +39,14 @@ public class User extends BaseSoftDeleteEntity {
     // 카카오 로그인 사용자는 null이다. 항상 BCrypt로 인코딩된 값만 저장한다.
     @Column(name = "password", length = 100)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "onboarding_status", length = 20, nullable = false)
+    @ColumnDefault("'COMPLETED'")
+    private OnboardingStatus onboardingStatus = OnboardingStatus.NOT_STARTED;
+
+    @Column(name = "onboarding_completed_at")
+    private LocalDateTime onboardingCompletedAt;
 
     private User(String kakaoId, String nickname, String email, String password) {
         this.kakaoId = kakaoId;
