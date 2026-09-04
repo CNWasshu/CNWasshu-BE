@@ -32,4 +32,10 @@ public record CourseDetailResponse(
                         .toList()
         );
     }
+
+    public CourseDetailResponse withItems(List<CourseItemResponse> items) {
+        return new CourseDetailResponse(
+                id, courseName, courseType, peopleCount, withChild, startDate, endDate, items
+        );
+    }
 }

@@ -3,6 +3,7 @@ package com.example.cnwasshu.domain.course.service;
 import com.example.cnwasshu.domain.course.dto.request.CourseItemRequest;
 import com.example.cnwasshu.domain.course.dto.request.CourseSaveRequest;
 import com.example.cnwasshu.domain.course.dto.response.CourseDetailResponse;
+import com.example.cnwasshu.domain.course.dto.response.CourseItemResponse;
 import com.example.cnwasshu.domain.course.dto.response.CourseSummaryResponse;
 import com.example.cnwasshu.domain.course.entity.Course;
 import com.example.cnwasshu.domain.course.entity.CourseItem;
@@ -30,6 +31,7 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final CourseSurveyGenerationService courseSurveyGenerationService;
+    private final KakaoMobilityDirectionsClient directionsClient;
 
     public List<CourseSummaryResponse> getMyCourses(Long userId) {
         return courseRepository.findByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId)
@@ -40,7 +42,28 @@ public class CourseService {
 
     public CourseDetailResponse getCourseDetail(Long userId, Long courseId) {
         Course course = findOwnedCourse(userId, courseId);
-        return CourseDetailResponse.from(course);
+        CourseDetailResponse detail = CourseDetailResponse.from(course);
+        return detail.withItems(addRoutesToNextItems(detail.items()));
+    }
+
+    private List<CourseItemResponse> addRoutesToNextItems(List<CourseItemResponse> items) {
+        var enriched = new java.util.ArrayList<>(items);
+        for (int index = 0; index < items.size() - 1; index++) {
+            var current = items.get(index);
+            var next = items.get(index + 1);
+            if (!current.dayNo().equals(next.dayNo())
+                    || current.latitude() == null || current.longitude() == null
+                    || next.latitude() == null || next.longitude() == null) {
+                continue;
+            }
+            var route = directionsClient.getCarRoute(
+                    current.latitude(), current.longitude(), next.latitude(), next.longitude());
+            if (route.isPresent()) {
+                enriched.set(index, current.withRouteToNext(
+                        route.get().distanceMeters(), route.get().travelTimeSeconds()));
+            }
+        }
+        return List.copyOf(enriched);
     }
 
     @Transactional
