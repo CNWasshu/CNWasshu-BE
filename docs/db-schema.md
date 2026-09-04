@@ -11,9 +11,13 @@
 | nickname | VARCHAR(50) | NOT NULL | 닉네임 |
 | email | VARCHAR(100) |  | 이메일 |
 | profile_image | VARCHAR(500) |  | 프로필 이미지 |
+| onboarding_status | VARCHAR(20) | NOT NULL, DEFAULT `COMPLETED` | 온보딩 상태 (`NOT_STARTED`, `COMPLETED`, `SKIPPED`) |
+| onboarding_completed_at | DATETIME |  | 온보딩 완료 또는 건너뛰기 일시 |
 | created_at | DATETIME | NOT NULL | 생성일 |
 | updated_at | DATETIME | NOT NULL | 수정일 |
 | deleted_at | DATETIME |  | 소프트 딜리트 일시 |
+
+애플리케이션에서 새로 가입한 사용자는 `NOT_STARTED`로 저장한다. DDL 기본값 `COMPLETED`는 기존 회원에게 온보딩이 소급 노출되지 않도록 하기 위한 값이다.
 
 ---
 

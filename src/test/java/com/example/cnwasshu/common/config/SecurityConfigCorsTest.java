@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,5 +33,11 @@ class SecurityConfigCorsTest {
                         containsString("GET")))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
                         containsString("X-USER-ID")));
+    }
+
+    @Test
+    void requiresAuthenticationForOnboardingStatus() throws Exception {
+        mockMvc.perform(get("/api/users/me/onboarding"))
+                .andExpect(status().isUnauthorized());
     }
 }
