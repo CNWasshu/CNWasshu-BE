@@ -3,6 +3,7 @@ package com.example.cnwasshu.domain.timetable.service;
 import com.example.cnwasshu.domain.course.entity.Course;
 import com.example.cnwasshu.domain.course.entity.CourseItem;
 import com.example.cnwasshu.domain.course.entity.CourseType;
+import com.example.cnwasshu.domain.course.exception.CourseNotFoundException;
 import com.example.cnwasshu.domain.course.repository.CourseRepository;
 import com.example.cnwasshu.domain.review.service.CourseSurveyGenerationService;
 import com.example.cnwasshu.domain.timetable.dto.request.TimetableSaveRequest;
@@ -51,6 +52,29 @@ public class TimetableService {
         toCourseItems(request, referenceData).forEach(course::addItem);
 
         Course savedCourse = courseRepository.saveAndFlush(course);
+        courseSurveyGenerationService.generateFor(savedCourse);
+        return TimetableDetailResponse.from(savedCourse);
+    }
+
+    /** 기존에 저장된 코스의 이름/기간/일정을 통째로 교체한다 ("코스 내용 수정"). */
+    @Transactional
+    public TimetableDetailResponse updateTimetable(Long userId, Long courseId, TimetableSaveRequest request) {
+        Course course = courseRepository.findByIdAndUserIdAndDeletedAtIsNull(courseId, userId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        TimetableReferenceData referenceData = timetableValidator.validate(userId, request);
+
+        course.updateTimetable(
+                request.timetableName().trim(),
+                DEFAULT_PEOPLE_COUNT,
+                DEFAULT_WITH_CHILD,
+                request.startDate(),
+                request.endDate()
+        );
+        course.replaceItems(toCourseItems(request, referenceData));
+
+        Course savedCourse = courseRepository.saveAndFlush(course);
+        // 기간/일정이 바뀌었을 수 있으니 예정된 만족도 조사도 다시 계산한다.
         courseSurveyGenerationService.generateFor(savedCourse);
         return TimetableDetailResponse.from(savedCourse);
     }

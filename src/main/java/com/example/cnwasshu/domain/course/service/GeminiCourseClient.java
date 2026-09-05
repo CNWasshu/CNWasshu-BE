@@ -249,6 +249,7 @@ public class GeminiCourseClient {
                         null,
                         null,
                         null,
+                        null,
                         item.title(),
                         item.dayNo(),
                         item.startTime(),
@@ -257,7 +258,9 @@ public class GeminiCourseClient {
                         item.address(),
                         item.latitude(),
                         item.longitude(),
-                        item.memo()
+                        item.memo(),
+                        null,
+                        null
                 ))
                 .toList();
         return new AiCourseRecommendResponse(result.suggestedCourseName(), items);
