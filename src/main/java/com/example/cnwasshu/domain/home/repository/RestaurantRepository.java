@@ -112,4 +112,26 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     List<Restaurant> findAllByIdsWithRegionAndCategory(
             @Param("ids") Collection<Long> ids
     );
+
+    @Query("""
+            SELECT DISTINCT r.region.id, r.region.name
+            FROM Restaurant r
+            WHERE r.deletedAt IS NULL
+              AND r.status = :status
+            ORDER BY r.region.name ASC
+            """)
+    List<Object[]> findHomeRegionOptions(
+            @Param("status") RestaurantStatus status
+    );
+
+    @Query("""
+            SELECT DISTINCT r.category.id, r.category.name
+            FROM Restaurant r
+            WHERE r.deletedAt IS NULL
+              AND r.status = :status
+            ORDER BY r.category.name ASC
+            """)
+    List<Object[]> findHomeCategoryOptions(
+            @Param("status") RestaurantStatus status
+    );
 }

@@ -1,7 +1,9 @@
 package com.example.cnwasshu.domain.home.controller;
 
 import com.example.cnwasshu.domain.home.dto.ActivityHomeSort;
+import com.example.cnwasshu.domain.home.dto.HomeFilterOptionResponse;
 import com.example.cnwasshu.domain.home.dto.HomeItemResponse;
+import com.example.cnwasshu.domain.home.dto.HomeItemType;
 import com.example.cnwasshu.domain.home.dto.HomePageResponse;
 import com.example.cnwasshu.domain.home.dto.RestaurantHomeSort;
 import com.example.cnwasshu.domain.home.service.HomeService;
@@ -23,7 +25,9 @@ public class HomeController {
 
     @GetMapping
     public ResponseEntity<List<HomeItemResponse>> getHomeItems() {
-        return ResponseEntity.ok(homeService.getHomeItems());
+        return ResponseEntity.ok(
+                homeService.getHomeItems()
+        );
     }
 
     @GetMapping("/activities")
@@ -71,6 +75,16 @@ public class HomeController {
                         page,
                         size
                 )
+        );
+    }
+
+    @GetMapping("/filters")
+    public ResponseEntity<HomeFilterOptionResponse> getFilterOptions(
+            @RequestParam
+            HomeItemType type
+    ) {
+        return ResponseEntity.ok(
+                homeService.getFilterOptions(type)
         );
     }
 }

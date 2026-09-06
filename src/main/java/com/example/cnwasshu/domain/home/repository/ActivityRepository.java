@@ -197,4 +197,26 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
     List<Activity> findAllByIdsWithRegionAndCategory(
             @Param("ids") Collection<Long> ids
     );
+
+    @Query("""
+            SELECT DISTINCT a.region.id, a.region.name
+            FROM Activity a
+            WHERE a.deletedAt IS NULL
+              AND a.status = :status
+            ORDER BY a.region.name ASC
+            """)
+    List<Object[]> findHomeRegionOptions(
+            @Param("status") ActivityStatus status
+    );
+
+    @Query("""
+            SELECT DISTINCT a.category.id, a.category.name
+            FROM Activity a
+            WHERE a.deletedAt IS NULL
+              AND a.status = :status
+            ORDER BY a.category.name ASC
+            """)
+    List<Object[]> findHomeCategoryOptions(
+            @Param("status") ActivityStatus status
+    );
 }

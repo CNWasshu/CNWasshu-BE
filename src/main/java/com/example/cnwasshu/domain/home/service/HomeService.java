@@ -1,14 +1,18 @@
 package com.example.cnwasshu.domain.home.service;
 
 import com.example.cnwasshu.domain.home.dto.ActivityHomeSort;
+import com.example.cnwasshu.domain.home.dto.HomeFilterOption;
+import com.example.cnwasshu.domain.home.dto.HomeFilterOptionResponse;
 import com.example.cnwasshu.domain.home.dto.HomeItemResponse;
 import com.example.cnwasshu.domain.home.dto.HomeItemType;
 import com.example.cnwasshu.domain.home.dto.HomePageResponse;
 import com.example.cnwasshu.domain.home.dto.RestaurantHomeSort;
 import com.example.cnwasshu.domain.home.entity.Activity;
+import com.example.cnwasshu.domain.home.entity.ActivityStatus;
 import com.example.cnwasshu.domain.home.entity.ActivityTag;
 import com.example.cnwasshu.domain.home.entity.ActivityWeather;
 import com.example.cnwasshu.domain.home.entity.Restaurant;
+import com.example.cnwasshu.domain.home.entity.RestaurantStatus;
 import com.example.cnwasshu.domain.home.repository.ActivityRepository;
 import com.example.cnwasshu.domain.home.repository.ActivityTagRepository;
 import com.example.cnwasshu.domain.home.repository.ActivityWeatherRepository;
@@ -72,9 +76,7 @@ public class HomeService {
         }
 
         for (Restaurant restaurant : restaurants) {
-            result.add(
-                    toRestaurantResponse(restaurant)
-            );
+            result.add(toRestaurantResponse(restaurant));
         }
 
         return result;
@@ -87,11 +89,9 @@ public class HomeService {
             int page,
             int size
     ) {
-        Pageable pageable =
-                PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Long> activityIdPage = switch (sort) {
-
             case DEFAULT ->
                     activityRepository.findHomeActivityIdsDefault(
                             regionId,
@@ -121,8 +121,7 @@ public class HomeService {
                     );
         };
 
-        List<Long> ids =
-                activityIdPage.getContent();
+        List<Long> ids = activityIdPage.getContent();
 
         if (ids.isEmpty()) {
             return new HomePageResponse(
@@ -136,11 +135,9 @@ public class HomeService {
         }
 
         List<Activity> activities =
-                activityRepository
-                        .findAllByIdsWithRegionAndCategory(ids);
+                activityRepository.findAllByIdsWithRegionAndCategory(ids);
 
-        Map<Long, Activity> activityMap =
-                new HashMap<>();
+        Map<Long, Activity> activityMap = new HashMap<>();
 
         for (Activity activity : activities) {
             activityMap.put(
@@ -155,13 +152,10 @@ public class HomeService {
         Map<Long, List<String>> weatherTagMap =
                 getWeatherTagMap(ids);
 
-        List<HomeItemResponse> items =
-                new ArrayList<>();
+        List<HomeItemResponse> items = new ArrayList<>();
 
         for (Long id : ids) {
-
-            Activity activity =
-                    activityMap.get(id);
+            Activity activity = activityMap.get(id);
 
             if (activity != null) {
                 items.add(
@@ -197,12 +191,10 @@ public class HomeService {
             int page,
             int size
     ) {
-        Pageable pageable =
-                PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Long> restaurantIdPage =
                 switch (sort) {
-
                     case NAME ->
                             restaurantRepository
                                     .findHomeRestaurantIdsName(
@@ -252,15 +244,12 @@ public class HomeService {
                 new ArrayList<>();
 
         for (Long id : ids) {
-
             Restaurant restaurant =
                     restaurantMap.get(id);
 
             if (restaurant != null) {
                 items.add(
-                        toRestaurantResponse(
-                                restaurant
-                        )
+                        toRestaurantResponse(restaurant)
                 );
             }
         }
@@ -275,6 +264,64 @@ public class HomeService {
         );
     }
 
+    public HomeFilterOptionResponse getFilterOptions(
+            HomeItemType type
+    ) {
+        if (type == HomeItemType.ACTIVITY) {
+
+            List<HomeFilterOption> regions =
+                    mapFilterOptions(
+                            activityRepository.findHomeRegionOptions(
+                                    ActivityStatus.OPEN
+                            )
+                    );
+
+            List<HomeFilterOption> categories =
+                    mapFilterOptions(
+                            activityRepository.findHomeCategoryOptions(
+                                    ActivityStatus.OPEN
+                            )
+                    );
+
+            return new HomeFilterOptionResponse(
+                    regions,
+                    categories
+            );
+        }
+
+        List<HomeFilterOption> regions =
+                mapFilterOptions(
+                        restaurantRepository.findHomeRegionOptions(
+                                RestaurantStatus.OPEN
+                        )
+                );
+
+        List<HomeFilterOption> categories =
+                mapFilterOptions(
+                        restaurantRepository.findHomeCategoryOptions(
+                                RestaurantStatus.OPEN
+                        )
+                );
+
+        return new HomeFilterOptionResponse(
+                regions,
+                categories
+        );
+    }
+
+    private List<HomeFilterOption> mapFilterOptions(
+            List<Object[]> rows
+    ) {
+        return rows.stream()
+                .map(row ->
+                        new HomeFilterOption(
+                                ((Number) row[0]).intValue(),
+                                (String) row[1]
+                        )
+                )
+                .toList();
+    }
+
     private Map<Long, List<String>> getTagMap(
             List<Long> activityIds
     ) {
@@ -284,10 +331,9 @@ public class HomeService {
         }
 
         List<ActivityTag> activityTags =
-                activityTagRepository
-                        .findByActivity_IdIn(
-                                activityIds
-                        );
+                activityTagRepository.findByActivity_IdIn(
+                        activityIds
+                );
 
         Map<Long, List<String>> tagMap =
                 new HashMap<>();
@@ -295,14 +341,10 @@ public class HomeService {
         for (ActivityTag activityTag : activityTags) {
 
             Long activityId =
-                    activityTag
-                            .getActivity()
-                            .getId();
+                    activityTag.getActivity().getId();
 
             String tagName =
-                    activityTag
-                            .getTag()
-                            .getName();
+                    activityTag.getTag().getName();
 
             tagMap
                     .computeIfAbsent(
@@ -324,10 +366,9 @@ public class HomeService {
         }
 
         List<ActivityWeather> activityWeathers =
-                activityWeatherRepository
-                        .findByActivity_IdIn(
-                                activityIds
-                        );
+                activityWeatherRepository.findByActivity_IdIn(
+                        activityIds
+                );
 
         Map<Long, List<String>> weatherTagMap =
                 new HashMap<>();
@@ -336,14 +377,10 @@ public class HomeService {
                 activityWeathers) {
 
             Long activityId =
-                    activityWeather
-                            .getActivity()
-                            .getId();
+                    activityWeather.getActivity().getId();
 
             String weatherTagName =
-                    activityWeather
-                            .getWeatherTag()
-                            .getName();
+                    activityWeather.getWeatherTag().getName();
 
             weatherTagMap
                     .computeIfAbsent(
