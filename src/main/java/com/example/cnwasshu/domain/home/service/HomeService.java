@@ -39,28 +39,42 @@ public class HomeService {
 
         List<HomeItemResponse> result = new ArrayList<>();
 
-        List<Activity> activities = activityRepository.findByDeletedAtIsNull();
-        List<Restaurant> restaurants = restaurantRepository.findByDeletedAtIsNull();
+        List<Activity> activities =
+                activityRepository.findByDeletedAtIsNull();
+
+        List<Restaurant> restaurants =
+                restaurantRepository.findByDeletedAtIsNull();
 
         List<Long> activityIds = activities.stream()
                 .map(Activity::getId)
                 .toList();
 
-        Map<Long, List<String>> tagMap = getTagMap(activityIds);
-        Map<Long, List<String>> weatherTagMap = getWeatherTagMap(activityIds);
+        Map<Long, List<String>> tagMap =
+                getTagMap(activityIds);
+
+        Map<Long, List<String>> weatherTagMap =
+                getWeatherTagMap(activityIds);
 
         for (Activity activity : activities) {
             result.add(
                     toActivityResponse(
                             activity,
-                            tagMap.getOrDefault(activity.getId(), List.of()),
-                            weatherTagMap.getOrDefault(activity.getId(), List.of())
+                            tagMap.getOrDefault(
+                                    activity.getId(),
+                                    List.of()
+                            ),
+                            weatherTagMap.getOrDefault(
+                                    activity.getId(),
+                                    List.of()
+                            )
                     )
             );
         }
 
         for (Restaurant restaurant : restaurants) {
-            result.add(toRestaurantResponse(restaurant));
+            result.add(
+                    toRestaurantResponse(restaurant)
+            );
         }
 
         return result;
@@ -68,23 +82,47 @@ public class HomeService {
 
     public HomePageResponse getActivities(
             ActivityHomeSort sort,
+            Integer regionId,
+            Integer categoryId,
             int page,
             int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable =
+                PageRequest.of(page, size);
 
         Page<Long> activityIdPage = switch (sort) {
+
             case DEFAULT ->
-                    activityRepository.findHomeActivityIdsDefault(pageable);
+                    activityRepository.findHomeActivityIdsDefault(
+                            regionId,
+                            categoryId,
+                            pageable
+                    );
+
             case RECOMMENDED ->
-                    activityRepository.findHomeActivityIdsRecommended(pageable);
+                    activityRepository.findHomeActivityIdsRecommended(
+                            regionId,
+                            categoryId,
+                            pageable
+                    );
+
             case RESERVATION ->
-                    activityRepository.findHomeActivityIdsReservation(pageable);
+                    activityRepository.findHomeActivityIdsReservation(
+                            regionId,
+                            categoryId,
+                            pageable
+                    );
+
             case BOOKMARK ->
-                    activityRepository.findHomeActivityIdsBookmark(pageable);
+                    activityRepository.findHomeActivityIdsBookmark(
+                            regionId,
+                            categoryId,
+                            pageable
+                    );
         };
 
-        List<Long> ids = activityIdPage.getContent();
+        List<Long> ids =
+                activityIdPage.getContent();
 
         if (ids.isEmpty()) {
             return new HomePageResponse(
@@ -98,28 +136,45 @@ public class HomeService {
         }
 
         List<Activity> activities =
-                activityRepository.findAllByIdsWithRegionAndCategory(ids);
+                activityRepository
+                        .findAllByIdsWithRegionAndCategory(ids);
 
-        Map<Long, Activity> activityMap = new HashMap<>();
+        Map<Long, Activity> activityMap =
+                new HashMap<>();
 
         for (Activity activity : activities) {
-            activityMap.put(activity.getId(), activity);
+            activityMap.put(
+                    activity.getId(),
+                    activity
+            );
         }
 
-        Map<Long, List<String>> tagMap = getTagMap(ids);
-        Map<Long, List<String>> weatherTagMap = getWeatherTagMap(ids);
+        Map<Long, List<String>> tagMap =
+                getTagMap(ids);
 
-        List<HomeItemResponse> items = new ArrayList<>();
+        Map<Long, List<String>> weatherTagMap =
+                getWeatherTagMap(ids);
+
+        List<HomeItemResponse> items =
+                new ArrayList<>();
 
         for (Long id : ids) {
-            Activity activity = activityMap.get(id);
+
+            Activity activity =
+                    activityMap.get(id);
 
             if (activity != null) {
                 items.add(
                         toActivityResponse(
                                 activity,
-                                tagMap.getOrDefault(id, List.of()),
-                                weatherTagMap.getOrDefault(id, List.of())
+                                tagMap.getOrDefault(
+                                        id,
+                                        List.of()
+                                ),
+                                weatherTagMap.getOrDefault(
+                                        id,
+                                        List.of()
+                                )
                         )
                 );
             }
@@ -137,19 +192,36 @@ public class HomeService {
 
     public HomePageResponse getRestaurants(
             RestaurantHomeSort sort,
+            Integer regionId,
+            Integer categoryId,
             int page,
             int size
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable =
+                PageRequest.of(page, size);
 
-        Page<Long> restaurantIdPage = switch (sort) {
-            case NAME ->
-                    restaurantRepository.findHomeRestaurantIdsName(pageable);
-            case BOOKMARK ->
-                    restaurantRepository.findHomeRestaurantIdsBookmark(pageable);
-        };
+        Page<Long> restaurantIdPage =
+                switch (sort) {
 
-        List<Long> ids = restaurantIdPage.getContent();
+                    case NAME ->
+                            restaurantRepository
+                                    .findHomeRestaurantIdsName(
+                                            regionId,
+                                            categoryId,
+                                            pageable
+                                    );
+
+                    case BOOKMARK ->
+                            restaurantRepository
+                                    .findHomeRestaurantIdsBookmark(
+                                            regionId,
+                                            categoryId,
+                                            pageable
+                                    );
+                };
+
+        List<Long> ids =
+                restaurantIdPage.getContent();
 
         if (ids.isEmpty()) {
             return new HomePageResponse(
@@ -163,21 +235,33 @@ public class HomeService {
         }
 
         List<Restaurant> restaurants =
-                restaurantRepository.findAllByIdsWithRegionAndCategory(ids);
+                restaurantRepository
+                        .findAllByIdsWithRegionAndCategory(ids);
 
-        Map<Long, Restaurant> restaurantMap = new HashMap<>();
+        Map<Long, Restaurant> restaurantMap =
+                new HashMap<>();
 
         for (Restaurant restaurant : restaurants) {
-            restaurantMap.put(restaurant.getId(), restaurant);
+            restaurantMap.put(
+                    restaurant.getId(),
+                    restaurant
+            );
         }
 
-        List<HomeItemResponse> items = new ArrayList<>();
+        List<HomeItemResponse> items =
+                new ArrayList<>();
 
         for (Long id : ids) {
-            Restaurant restaurant = restaurantMap.get(id);
+
+            Restaurant restaurant =
+                    restaurantMap.get(id);
 
             if (restaurant != null) {
-                items.add(toRestaurantResponse(restaurant));
+                items.add(
+                        toRestaurantResponse(
+                                restaurant
+                        )
+                );
             }
         }
 
@@ -191,46 +275,81 @@ public class HomeService {
         );
     }
 
-    private Map<Long, List<String>> getTagMap(List<Long> activityIds) {
+    private Map<Long, List<String>> getTagMap(
+            List<Long> activityIds
+    ) {
 
         if (activityIds.isEmpty()) {
             return Map.of();
         }
 
         List<ActivityTag> activityTags =
-                activityTagRepository.findByActivity_IdIn(activityIds);
+                activityTagRepository
+                        .findByActivity_IdIn(
+                                activityIds
+                        );
 
-        Map<Long, List<String>> tagMap = new HashMap<>();
+        Map<Long, List<String>> tagMap =
+                new HashMap<>();
 
         for (ActivityTag activityTag : activityTags) {
-            Long activityId = activityTag.getActivity().getId();
-            String tagName = activityTag.getTag().getName();
 
-            tagMap.computeIfAbsent(activityId, key -> new ArrayList<>())
+            Long activityId =
+                    activityTag
+                            .getActivity()
+                            .getId();
+
+            String tagName =
+                    activityTag
+                            .getTag()
+                            .getName();
+
+            tagMap
+                    .computeIfAbsent(
+                            activityId,
+                            key -> new ArrayList<>()
+                    )
                     .add(tagName);
         }
 
         return tagMap;
     }
 
-    private Map<Long, List<String>> getWeatherTagMap(List<Long> activityIds) {
+    private Map<Long, List<String>> getWeatherTagMap(
+            List<Long> activityIds
+    ) {
 
         if (activityIds.isEmpty()) {
             return Map.of();
         }
 
         List<ActivityWeather> activityWeathers =
-                activityWeatherRepository.findByActivity_IdIn(activityIds);
+                activityWeatherRepository
+                        .findByActivity_IdIn(
+                                activityIds
+                        );
 
-        Map<Long, List<String>> weatherTagMap = new HashMap<>();
+        Map<Long, List<String>> weatherTagMap =
+                new HashMap<>();
 
-        for (ActivityWeather activityWeather : activityWeathers) {
-            Long activityId = activityWeather.getActivity().getId();
+        for (ActivityWeather activityWeather :
+                activityWeathers) {
+
+            Long activityId =
+                    activityWeather
+                            .getActivity()
+                            .getId();
+
             String weatherTagName =
-                    activityWeather.getWeatherTag().getName();
+                    activityWeather
+                            .getWeatherTag()
+                            .getName();
 
             weatherTagMap
-                    .computeIfAbsent(activityId, key -> new ArrayList<>())
+                    .computeIfAbsent(
+                            activityId,
+                            key -> new ArrayList<>()
+                    )
                     .add(weatherTagName);
         }
 
@@ -263,7 +382,9 @@ public class HomeService {
         );
     }
 
-    private HomeItemResponse toRestaurantResponse(Restaurant restaurant) {
+    private HomeItemResponse toRestaurantResponse(
+            Restaurant restaurant
+    ) {
 
         return new HomeItemResponse(
                 restaurant.getId(),

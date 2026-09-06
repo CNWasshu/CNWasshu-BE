@@ -55,6 +55,8 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       ON recommendation.activity_id = a.activity_id
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     ORDER BY
                         r.is_depopulated_area DESC,
                         COALESCE(recommendation.recommended_count, 0) DESC,
@@ -65,10 +67,16 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                     FROM activity a
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     """,
             nativeQuery = true
     )
-    Page<Long> findHomeActivityIdsDefault(Pageable pageable);
+    Page<Long> findHomeActivityIdsDefault(
+            @Param("regionId") Integer regionId,
+            @Param("categoryId") Integer categoryId,
+            Pageable pageable
+    );
 
     @Query(
             value = """
@@ -84,6 +92,8 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       ON recommendation.activity_id = a.activity_id
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     ORDER BY
                         COALESCE(recommendation.recommended_count, 0) DESC,
                         a.activity_id ASC
@@ -93,10 +103,16 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                     FROM activity a
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     """,
             nativeQuery = true
     )
-    Page<Long> findHomeActivityIdsRecommended(Pageable pageable);
+    Page<Long> findHomeActivityIdsRecommended(
+            @Param("regionId") Integer regionId,
+            @Param("categoryId") Integer categoryId,
+            Pageable pageable
+    );
 
     @Query(
             value = """
@@ -113,6 +129,8 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       ON reservation_count.activity_id = a.activity_id
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     ORDER BY
                         COALESCE(reservation_count.reservation_count, 0) DESC,
                         a.activity_id ASC
@@ -122,10 +140,16 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                     FROM activity a
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     """,
             nativeQuery = true
     )
-    Page<Long> findHomeActivityIdsReservation(Pageable pageable);
+    Page<Long> findHomeActivityIdsReservation(
+            @Param("regionId") Integer regionId,
+            @Param("categoryId") Integer categoryId,
+            Pageable pageable
+    );
 
     @Query(
             value = """
@@ -141,6 +165,8 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       ON bookmark_count.activity_id = a.activity_id
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     ORDER BY
                         COALESCE(bookmark_count.bookmark_count, 0) DESC,
                         a.activity_id ASC
@@ -150,10 +176,16 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                     FROM activity a
                     WHERE a.deleted_at IS NULL
                       AND a.status = 'OPEN'
+                      AND (:regionId IS NULL OR a.region_id = :regionId)
+                      AND (:categoryId IS NULL OR a.category_id = :categoryId)
                     """,
             nativeQuery = true
     )
-    Page<Long> findHomeActivityIdsBookmark(Pageable pageable);
+    Page<Long> findHomeActivityIdsBookmark(
+            @Param("regionId") Integer regionId,
+            @Param("categoryId") Integer categoryId,
+            Pageable pageable
+    );
 
     @EntityGraph(attributePaths = {"region", "category"})
     @Query("""

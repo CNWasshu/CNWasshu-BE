@@ -30,13 +30,23 @@ public class HomeController {
     public ResponseEntity<HomePageResponse> getActivities(
             @RequestParam(defaultValue = "DEFAULT")
             ActivityHomeSort sort,
+            @RequestParam(required = false)
+            Integer regionId,
+            @RequestParam(required = false)
+            Integer categoryId,
             @RequestParam(defaultValue = "0")
             int page,
             @RequestParam(defaultValue = "8")
             int size
     ) {
         return ResponseEntity.ok(
-                homeService.getActivities(sort, page, size)
+                homeService.getActivities(
+                        sort,
+                        regionId,
+                        categoryId,
+                        page,
+                        size
+                )
         );
     }
 
@@ -44,13 +54,23 @@ public class HomeController {
     public ResponseEntity<HomePageResponse> getRestaurants(
             @RequestParam(defaultValue = "NAME")
             RestaurantHomeSort sort,
+            @RequestParam(required = false)
+            Integer regionId,
+            @RequestParam(required = false)
+            Integer categoryId,
             @RequestParam(defaultValue = "0")
             int page,
             @RequestParam(defaultValue = "8")
             int size
     ) {
         return ResponseEntity.ok(
-                homeService.getRestaurants(sort, page, size)
+                homeService.getRestaurants(
+                        sort,
+                        regionId,
+                        categoryId,
+                        page,
+                        size
+                )
         );
     }
 }

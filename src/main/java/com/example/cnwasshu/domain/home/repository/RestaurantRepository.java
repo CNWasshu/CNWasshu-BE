@@ -43,6 +43,8 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                     FROM restaurant r
                     WHERE r.deleted_at IS NULL
                       AND r.status = 'OPEN'
+                      AND (:regionId IS NULL OR r.region_id = :regionId)
+                      AND (:categoryId IS NULL OR r.category_id = :categoryId)
                     ORDER BY
                         r.name ASC,
                         r.restaurant_id ASC
@@ -52,10 +54,16 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                     FROM restaurant r
                     WHERE r.deleted_at IS NULL
                       AND r.status = 'OPEN'
+                      AND (:regionId IS NULL OR r.region_id = :regionId)
+                      AND (:categoryId IS NULL OR r.category_id = :categoryId)
                     """,
             nativeQuery = true
     )
-    Page<Long> findHomeRestaurantIdsName(Pageable pageable);
+    Page<Long> findHomeRestaurantIdsName(
+            @Param("regionId") Integer regionId,
+            @Param("categoryId") Integer categoryId,
+            Pageable pageable
+    );
 
     @Query(
             value = """
@@ -71,6 +79,8 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                       ON bookmark_count.restaurant_id = r.restaurant_id
                     WHERE r.deleted_at IS NULL
                       AND r.status = 'OPEN'
+                      AND (:regionId IS NULL OR r.region_id = :regionId)
+                      AND (:categoryId IS NULL OR r.category_id = :categoryId)
                     ORDER BY
                         COALESCE(bookmark_count.bookmark_count, 0) DESC,
                         r.name ASC,
@@ -81,10 +91,16 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                     FROM restaurant r
                     WHERE r.deleted_at IS NULL
                       AND r.status = 'OPEN'
+                      AND (:regionId IS NULL OR r.region_id = :regionId)
+                      AND (:categoryId IS NULL OR r.category_id = :categoryId)
                     """,
             nativeQuery = true
     )
-    Page<Long> findHomeRestaurantIdsBookmark(Pageable pageable);
+    Page<Long> findHomeRestaurantIdsBookmark(
+            @Param("regionId") Integer regionId,
+            @Param("categoryId") Integer categoryId,
+            Pageable pageable
+    );
 
     @EntityGraph(attributePaths = {"region", "category"})
     @Query("""
