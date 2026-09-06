@@ -42,8 +42,21 @@ public class HomeService {
         List<Activity> activities = activityRepository.findByDeletedAtIsNull();
         List<Restaurant> restaurants = restaurantRepository.findByDeletedAtIsNull();
 
+        List<Long> activityIds = activities.stream()
+                .map(Activity::getId)
+                .toList();
+
+        Map<Long, List<String>> tagMap = getTagMap(activityIds);
+        Map<Long, List<String>> weatherTagMap = getWeatherTagMap(activityIds);
+
         for (Activity activity : activities) {
-            result.add(toActivityResponse(activity));
+            result.add(
+                    toActivityResponse(
+                            activity,
+                            tagMap.getOrDefault(activity.getId(), List.of()),
+                            weatherTagMap.getOrDefault(activity.getId(), List.of())
+                    )
+            );
         }
 
         for (Restaurant restaurant : restaurants) {
@@ -93,13 +106,22 @@ public class HomeService {
             activityMap.put(activity.getId(), activity);
         }
 
+        Map<Long, List<String>> tagMap = getTagMap(ids);
+        Map<Long, List<String>> weatherTagMap = getWeatherTagMap(ids);
+
         List<HomeItemResponse> items = new ArrayList<>();
 
         for (Long id : ids) {
             Activity activity = activityMap.get(id);
 
             if (activity != null) {
-                items.add(toActivityResponse(activity));
+                items.add(
+                        toActivityResponse(
+                                activity,
+                                tagMap.getOrDefault(id, List.of()),
+                                weatherTagMap.getOrDefault(id, List.of())
+                        )
+                );
             }
         }
 
@@ -169,21 +191,57 @@ public class HomeService {
         );
     }
 
-    private HomeItemResponse toActivityResponse(Activity activity) {
+    private Map<Long, List<String>> getTagMap(List<Long> activityIds) {
 
-        List<String> tags = activityTagRepository
-                .findByActivity_Id(activity.getId())
-                .stream()
-                .map(ActivityTag::getTag)
-                .map(tag -> tag.getName())
-                .toList();
+        if (activityIds.isEmpty()) {
+            return Map.of();
+        }
 
-        List<String> weatherTags = activityWeatherRepository
-                .findByActivity_Id(activity.getId())
-                .stream()
-                .map(ActivityWeather::getWeatherTag)
-                .map(weatherTag -> weatherTag.getName())
-                .toList();
+        List<ActivityTag> activityTags =
+                activityTagRepository.findByActivity_IdIn(activityIds);
+
+        Map<Long, List<String>> tagMap = new HashMap<>();
+
+        for (ActivityTag activityTag : activityTags) {
+            Long activityId = activityTag.getActivity().getId();
+            String tagName = activityTag.getTag().getName();
+
+            tagMap.computeIfAbsent(activityId, key -> new ArrayList<>())
+                    .add(tagName);
+        }
+
+        return tagMap;
+    }
+
+    private Map<Long, List<String>> getWeatherTagMap(List<Long> activityIds) {
+
+        if (activityIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<ActivityWeather> activityWeathers =
+                activityWeatherRepository.findByActivity_IdIn(activityIds);
+
+        Map<Long, List<String>> weatherTagMap = new HashMap<>();
+
+        for (ActivityWeather activityWeather : activityWeathers) {
+            Long activityId = activityWeather.getActivity().getId();
+            String weatherTagName =
+                    activityWeather.getWeatherTag().getName();
+
+            weatherTagMap
+                    .computeIfAbsent(activityId, key -> new ArrayList<>())
+                    .add(weatherTagName);
+        }
+
+        return weatherTagMap;
+    }
+
+    private HomeItemResponse toActivityResponse(
+            Activity activity,
+            List<String> tags,
+            List<String> weatherTags
+    ) {
 
         return new HomeItemResponse(
                 activity.getId(),
