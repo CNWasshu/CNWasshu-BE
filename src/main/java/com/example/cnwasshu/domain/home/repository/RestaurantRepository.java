@@ -45,6 +45,12 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                       AND r.status = 'OPEN'
                       AND (:regionId IS NULL OR r.region_id = :regionId)
                       AND (:categoryId IS NULL OR r.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(r.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     ORDER BY
                         r.name ASC,
                         r.restaurant_id ASC
@@ -56,12 +62,19 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                       AND r.status = 'OPEN'
                       AND (:regionId IS NULL OR r.region_id = :regionId)
                       AND (:categoryId IS NULL OR r.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(r.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     """,
             nativeQuery = true
     )
     Page<Long> findHomeRestaurantIdsName(
             @Param("regionId") Integer regionId,
             @Param("categoryId") Integer categoryId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 
@@ -81,6 +94,12 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                       AND r.status = 'OPEN'
                       AND (:regionId IS NULL OR r.region_id = :regionId)
                       AND (:categoryId IS NULL OR r.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(r.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     ORDER BY
                         COALESCE(bookmark_count.bookmark_count, 0) DESC,
                         r.name ASC,
@@ -93,12 +112,19 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
                       AND r.status = 'OPEN'
                       AND (:regionId IS NULL OR r.region_id = :regionId)
                       AND (:categoryId IS NULL OR r.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(r.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(r.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     """,
             nativeQuery = true
     )
     Page<Long> findHomeRestaurantIdsBookmark(
             @Param("regionId") Integer regionId,
             @Param("categoryId") Integer categoryId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 

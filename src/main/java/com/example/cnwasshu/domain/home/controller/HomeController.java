@@ -38,6 +38,8 @@ public class HomeController {
             Integer regionId,
             @RequestParam(required = false)
             Integer categoryId,
+            @RequestParam(required = false)
+            String keyword,
             @RequestParam(defaultValue = "0")
             int page,
             @RequestParam(defaultValue = "8")
@@ -48,6 +50,7 @@ public class HomeController {
                         sort,
                         regionId,
                         categoryId,
+                        keyword,
                         page,
                         size
                 )
@@ -62,6 +65,8 @@ public class HomeController {
             Integer regionId,
             @RequestParam(required = false)
             Integer categoryId,
+            @RequestParam(required = false)
+            String keyword,
             @RequestParam(defaultValue = "0")
             int page,
             @RequestParam(defaultValue = "8")
@@ -72,6 +77,7 @@ public class HomeController {
                         sort,
                         regionId,
                         categoryId,
+                        keyword,
                         page,
                         size
                 )
