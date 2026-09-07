@@ -86,16 +86,21 @@ public class HomeService {
             ActivityHomeSort sort,
             Integer regionId,
             Integer categoryId,
+            String keyword,
             int page,
             int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
+
+        String normalizedKeyword =
+                normalizeKeyword(keyword);
 
         Page<Long> activityIdPage = switch (sort) {
             case DEFAULT ->
                     activityRepository.findHomeActivityIdsDefault(
                             regionId,
                             categoryId,
+                            normalizedKeyword,
                             pageable
                     );
 
@@ -103,6 +108,7 @@ public class HomeService {
                     activityRepository.findHomeActivityIdsRecommended(
                             regionId,
                             categoryId,
+                            normalizedKeyword,
                             pageable
                     );
 
@@ -110,6 +116,7 @@ public class HomeService {
                     activityRepository.findHomeActivityIdsReservation(
                             regionId,
                             categoryId,
+                            normalizedKeyword,
                             pageable
                     );
 
@@ -117,6 +124,7 @@ public class HomeService {
                     activityRepository.findHomeActivityIdsBookmark(
                             regionId,
                             categoryId,
+                            normalizedKeyword,
                             pageable
                     );
         };
@@ -188,10 +196,14 @@ public class HomeService {
             RestaurantHomeSort sort,
             Integer regionId,
             Integer categoryId,
+            String keyword,
             int page,
             int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
+
+        String normalizedKeyword =
+                normalizeKeyword(keyword);
 
         Page<Long> restaurantIdPage =
                 switch (sort) {
@@ -200,6 +212,7 @@ public class HomeService {
                                     .findHomeRestaurantIdsName(
                                             regionId,
                                             categoryId,
+                                            normalizedKeyword,
                                             pageable
                                     );
 
@@ -208,6 +221,7 @@ public class HomeService {
                                     .findHomeRestaurantIdsBookmark(
                                             regionId,
                                             categoryId,
+                                            normalizedKeyword,
                                             pageable
                                     );
                 };
@@ -307,6 +321,22 @@ public class HomeService {
                 regions,
                 categories
         );
+    }
+
+    private String normalizeKeyword(
+            String keyword
+    ) {
+        if (keyword == null) {
+            return null;
+        }
+
+        String trimmedKeyword = keyword.trim();
+
+        if (trimmedKeyword.isEmpty()) {
+            return null;
+        }
+
+        return trimmedKeyword;
     }
 
     private List<HomeFilterOption> mapFilterOptions(

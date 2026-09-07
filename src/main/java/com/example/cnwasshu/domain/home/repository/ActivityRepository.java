@@ -57,6 +57,12 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     ORDER BY
                         r.is_depopulated_area DESC,
                         COALESCE(recommendation.recommended_count, 0) DESC,
@@ -69,12 +75,19 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     """,
             nativeQuery = true
     )
     Page<Long> findHomeActivityIdsDefault(
             @Param("regionId") Integer regionId,
             @Param("categoryId") Integer categoryId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 
@@ -94,6 +107,12 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     ORDER BY
                         COALESCE(recommendation.recommended_count, 0) DESC,
                         a.activity_id ASC
@@ -105,12 +124,19 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     """,
             nativeQuery = true
     )
     Page<Long> findHomeActivityIdsRecommended(
             @Param("regionId") Integer regionId,
             @Param("categoryId") Integer categoryId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 
@@ -131,6 +157,12 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     ORDER BY
                         COALESCE(reservation_count.reservation_count, 0) DESC,
                         a.activity_id ASC
@@ -142,12 +174,19 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     """,
             nativeQuery = true
     )
     Page<Long> findHomeActivityIdsReservation(
             @Param("regionId") Integer regionId,
             @Param("categoryId") Integer categoryId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 
@@ -167,6 +206,12 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     ORDER BY
                         COALESCE(bookmark_count.bookmark_count, 0) DESC,
                         a.activity_id ASC
@@ -178,12 +223,19 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                       AND a.status = 'OPEN'
                       AND (:regionId IS NULL OR a.region_id = :regionId)
                       AND (:categoryId IS NULL OR a.category_id = :categoryId)
+                      AND (
+                          :keyword IS NULL
+                          OR :keyword = ''
+                          OR LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                      )
                     """,
             nativeQuery = true
     )
     Page<Long> findHomeActivityIdsBookmark(
             @Param("regionId") Integer regionId,
             @Param("categoryId") Integer categoryId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 
