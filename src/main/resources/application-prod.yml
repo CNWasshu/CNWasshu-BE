@@ -1,0 +1,50 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  config:
+    import: ""
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  client-secret: ${KAKAO_CLIENT_SECRET:}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-validity-seconds: ${JWT_ACCESS_TOKEN_VALIDITY:1800}
+  refresh-token-validity-seconds: ${JWT_REFRESH_TOKEN_VALIDITY:1209600}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-3.6-flash}
+  base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+
+kakao-mobility:
+  rest-api-key: ${KAKAO_MOBILITY_REST_API_KEY:}
+  base-url: ${KAKAO_MOBILITY_BASE_URL:https://apis-navi.kakaomobility.com}
+
+weather:
+  api:
+    service-key: ${WEATHER_API_SERVICE_KEY:}
+    base-url: ${WEATHER_API_BASE_URL:https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

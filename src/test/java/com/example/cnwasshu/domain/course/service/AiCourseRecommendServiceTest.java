@@ -91,9 +91,9 @@ class AiCourseRecommendServiceTest {
             String title, int dayNo, int sortOrder, String latitude, String longitude
     ) {
         return new CourseItemResponse(
-                null, null, null, title, dayNo,
+                null, null, null, null, title, dayNo,
                 LocalTime.of(9 + sortOrder, 0), LocalTime.of(10 + sortOrder, 0), sortOrder,
-                null, new BigDecimal(latitude), new BigDecimal(longitude), null
+                null, new BigDecimal(latitude), new BigDecimal(longitude), null, null, null
         );
     }
 }
