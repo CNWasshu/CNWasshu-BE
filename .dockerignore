@@ -1,0 +1,16 @@
+.git
+.github
+.gradle
+.idea
+.vscode
+build
+docker
+*.iml
+*.log
+.env
+**/.env
+src/main/resources/application.properties
+src/main/resources/application-local.yml
+src/main/resources/application-local.properties
+src/main/resources/application-secret.yml
+src/main/resources/application-secret.properties

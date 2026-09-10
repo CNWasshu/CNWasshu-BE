@@ -42,6 +42,12 @@ class SecurityConfigCorsTest {
     }
 
     @Test
+    void allowsUnauthenticatedHealthCheck() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void requiresAuthenticationForOnboardingStatus() throws Exception {
         mockMvc.perform(get("/api/users/me/onboarding"))
                 .andExpect(status().isUnauthorized());

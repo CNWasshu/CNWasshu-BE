@@ -25,8 +25,8 @@ class CourseItemResponseTest {
 
     private CourseItemResponse item(int dayNo, int sortOrder, LocalTime startTime, String title) {
         return new CourseItemResponse(
-                null, null, null, title, dayNo, startTime, startTime.plusHours(1), sortOrder,
-                null, null, null, null
+                null, null, null, null, title, dayNo, startTime, startTime.plusHours(1), sortOrder,
+                null, null, null, null, null, null
         );
     }
 }
