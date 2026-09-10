@@ -41,8 +41,10 @@ out/
 
 # 환경 변수 및 민감 정보 (DB 비번, API Key 절대 금지)
 .env
-*.properties
-*.yml
+!.env.example
+docker/.env
+#*.properties
+#*.yml
  # 주의: application.yml을 올려야 한다면 아래 예외 처리 참고!
 
 # 운영체제 고유 파일
@@ -52,3 +54,8 @@ ehthumbs.db
 
 # 로그 파일
 *.log
+src/main/resources/application-local.yml
+src/main/resources/application-secret.yml
+src/main/resources/application.properties
+src/main/resources/application-local.properties
+src/main/resources/application-secret.properties
