@@ -64,6 +64,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
                           OR LOWER(a.short_description) LIKE LOWER(CONCAT('%', :keyword, '%'))
                       )
                     ORDER BY
+                        a.display_priority DESC,
                         r.is_depopulated_area DESC,
                         COALESCE(recommendation.recommended_count, 0) DESC,
                         a.activity_id ASC

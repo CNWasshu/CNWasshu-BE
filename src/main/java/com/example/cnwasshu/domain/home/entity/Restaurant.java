@@ -34,8 +34,7 @@ public class Restaurant extends BaseSoftDeleteEntity {
     @Column(name = "short_description", length = 255)
     private String shortDescription;
 
-    @Lob
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "address", nullable = false, length = 255)
